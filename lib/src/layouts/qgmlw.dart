@@ -1,6 +1,8 @@
-import 'package:typingthon/src/keymap.dart';
+import 'package:typingthon/src/layout.dart';
 
-var qgmlwKeyMap = KeyMap(true,
+var qgmlwLayout = Layout(
+  "QGMLW",
+  true,
   KeyRow.r2,
   KeyRowKeys(KeyRow.r4, [], []),
   KeyRowKeys(KeyRow.r3, ['q','g','m','l','w'], ['y','f','u','b',';']),

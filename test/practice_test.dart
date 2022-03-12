@@ -4,6 +4,6 @@ import 'package:typingthon/src/practice.dart';
 void main() {
   test('Safety', () {
     expect(PracticeGenerator.buildPreferred([], []), []);
-    expect(PracticeGenerator.build([], Practice.singleLeftHome), []);
+    expect(PracticeGenerator.build([], PracticeMode.singleLeftHome), []);
   });
 }

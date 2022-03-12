@@ -1,20 +1,37 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
-import 'keymap.dart';
+import 'layout.dart';
 
-enum Practice {
-  none,
+enum PracticeMode {
+  random,
   singleLeftHome,
   singleRightHome,
-  trickyKey,
+  slowKeys,
+  minutes5,
 }
 
-class PracticeGenerator {
+var practiseModes = {
+  "Slow Keys" : PracticeMode.slowKeys,
+  "Random" : PracticeMode.random,
+  "5 minutes" : PracticeMode.minutes5,
+};
 
-  static List<String> _buildHomeRow(List<String> words, Practice strategy) {
+class PracticeGenerator {
+  static Future<List<String>> loadWords(AssetBundle rootBundle) async {
+    final _data = await rootBundle.loadString('assets/words.txt');
+    var _words = _data.replaceAll("\r", "").split("\n");
+    var words = PracticeGenerator.build(_words);
+    words.shuffle();
+    words = words.sublist(0, min(30, words.length));
+    return words;
+  }
+
+  static List<String> _buildHomeRow(List<String> words, PracticeMode strategy) {
     List<String> selected = [];
-    final keys = keyMap.keys;
-    final homeRow = keyMap.homeRow;
+    final keys = layout.keys;
+    final homeRow = layout.homeRow;
 
     for (var word in words) {
       if (word.trim().runes.length < 3) {
@@ -32,7 +49,7 @@ class PracticeGenerator {
         }
 
         if (keys[_ch]!['row'] == homeRow) {
-          switch (keyMap.keys[_ch]!['hand']) {
+          switch (layout.keys[_ch]!['hand']) {
             case KeyHand.left: leftHome++; break;
             case KeyHand.right: rightHome++; break;
           }
@@ -44,11 +61,11 @@ class PracticeGenerator {
         }
       } // for ch in word.runes
 
-      if (strategy == Practice.singleLeftHome && leftTop == 0 && leftBottom == 0 && leftHome == 1 ) {
+      if (strategy == PracticeMode.singleLeftHome && leftTop == 0 && leftBottom == 0 && leftHome == 1 ) {
         selected.add(word);
       }
 
-      if (strategy == Practice.singleRightHome && rightTop == 0 && rightBottom == 0 && rightHome == 1 ) {
+      if (strategy == PracticeMode.singleRightHome && rightTop == 0 && rightBottom == 0 && rightHome == 1 ) {
         selected.add(word);
       }
 
@@ -76,14 +93,14 @@ class PracticeGenerator {
     return selected;
   }
 
-  static List<String> build(List<String> words, [Practice strategy = Practice.none]) {
+  static List<String> build(List<String> words, [PracticeMode strategy = PracticeMode.random]) {
     switch (strategy) {
-      case Practice.singleLeftHome:
-      case Practice.singleRightHome:
+      case PracticeMode.singleLeftHome:
+      case PracticeMode.singleRightHome:
         return _buildHomeRow(words, strategy);
-      case Practice.trickyKey:
+      case PracticeMode.slowKeys:
         throw UnimplementedError("Use buildPreferred instead");
-      case Practice.none:
+      case PracticeMode.random:
         return words..shuffle();
       default:
         throw UnimplementedError();

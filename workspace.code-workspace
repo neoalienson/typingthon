@@ -7,6 +7,9 @@
 	"settings": {
 		"files.associations": {
 			"*.inc": "c"
-		}
+		},
+		"atlascode.bitbucket.issues.explorerEnabled": true,
+		"atlascode.helpExplorerEnabled": true,
+		"atlascode.showWelcomeOnInstall": true
 	}
 }

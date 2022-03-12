@@ -1,11 +1,11 @@
-import 'keymaps/qgmlw.dart';
-import 'keymaps/qwerty.dart';
-import 'keymaps/qwerty_full.dart';
-final keyMapList = [
-  qgmlwKeyMap,
-  qwertyKeyMap,
-  qwertyFullKeyMap,
-  ];
+import 'layouts/qgmlw.dart';
+import 'layouts/qwerty.dart';
+import 'layouts/qwerty_full.dart';
+final layoutList = {
+  "qgmlw" : qgmlwLayout,
+  "qwerty" : qwertyLayout,
+  "qwerty_full" : qwertyFullLayout,
+};
 
 class KeyRowKeys {
   final KeyRow row;
@@ -27,7 +27,8 @@ enum KeyRow {
   r1
 }
 
-class KeyMap {
+class Layout {
+  final String title;
   final bool isSplit;
   final KeyRowKeys r1;
   final KeyRowKeys r2;
@@ -37,7 +38,7 @@ class KeyMap {
   final keys = <String, Map>{};
   var rows = <KeyRow, KeyRowKeys>{};
 
-  KeyMap(this.isSplit, this.homeRow, this.r4, this.r3, this.r2, this.r1) {
+  Layout(this.title, this.isSplit, this.homeRow, this.r4, this.r3, this.r2, this.r1) {
     rows = {
       KeyRow.r4: r4,
       KeyRow.r3: r3,
@@ -56,4 +57,4 @@ class KeyMap {
   }
 }
 
-var keyMap = keyMapList[0];
+var layout = layoutList["qgmlw"]!;

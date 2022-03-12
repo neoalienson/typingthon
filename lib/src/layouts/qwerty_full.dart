@@ -1,8 +1,10 @@
-import 'package:typingthon/src/keymap.dart';
+import 'package:typingthon/src/layout.dart';
 
-var qwertyKeyMap = KeyMap(true,
+var qwertyFullLayout = Layout(
+  "QWERTY Full",
+  true,
   KeyRow.r2,
-  KeyRowKeys(KeyRow.r4, [], []),
+  KeyRowKeys(KeyRow.r4, ['1','2','3','4','5'], ['6','7','8','9','0']),
   KeyRowKeys(KeyRow.r3, ['q','w','e','r','t'], ['y','u','i','o','p']),
   KeyRowKeys(KeyRow.r2, ['a','s','d','f','g'], ['h','j','k','l',';']),
   KeyRowKeys(KeyRow.r1, ['z','x','c','v','b'], ['n','m',',','.','/']),

@@ -5,7 +5,8 @@ import 'dart:developer' show log;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/keyboard.dart';
-import 'src/keymap.dart';
+import 'package:typingthon/statistic.dart';
+import 'src/layout.dart';
 import 'src/practice.dart';
 import 'src/analysis.dart';
 
@@ -53,6 +54,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final _wrongs = <String, int>{};
   var _wrongsMax = 1;
   Timer? _updateTimer;
+  final _practiceMode = PracticeMode.slowKeys;
+  var _enterPressed = false;
 
   void _reset() {
     _analysis.reset();
@@ -61,9 +64,9 @@ class _MyHomePageState extends State<MyHomePage> {
     _cursor = 0;
   }
 
-  void _onBackspace() {
+  KeyEventResult _onBackspace() {
     if (_typed.isEmpty) {
-      return;
+      return KeyEventResult.ignored;
     }
 
     setState(() {
@@ -71,9 +74,11 @@ class _MyHomePageState extends State<MyHomePage> {
       _cursor--;
       _typed = _typed.substring(0, _typed.length - 1);
     });
+
+    return KeyEventResult.ignored;
   }
 
-  void _onKeypressed(String ch) {
+  KeyEventResult _onKeypressed(String ch) {
     assert(ch.length == 1);
     var expected = _text[_cursor];
 
@@ -95,13 +100,24 @@ class _MyHomePageState extends State<MyHomePage> {
       _typed += ch;
       _trickyKeys = _analysis.trickyKeysDisplay;
     });
+
+    return KeyEventResult.ignored;
+  }
+
+  KeyEventResult _onEnter() {
+    setState(() {
+      _enterPressed = true;
+      _nextRound(PracticeGenerator.buildPreferred(_words, _analysis.trickyKeys(5)));
+    });
+
+    return KeyEventResult.ignored;
   }
 
   @override
   void initState() {
     super.initState();
 
-    for (var k in keyMap.keys.keys) {
+    for (var k in layout.keys.keys) {
       _heats[k] = 0;
       _wrongs[k] = 0;
     }
@@ -114,26 +130,19 @@ class _MyHomePageState extends State<MyHomePage> {
         }
 
         if (event.logicalKey == LogicalKeyboardKey.backspace) {
-          _onBackspace();
-          return KeyEventResult.ignored;
+          return _onBackspace();;
         }
 
         if (event.logicalKey == LogicalKeyboardKey.enter) {
-          setState(() {
-            _nextRound(PracticeGenerator.buildPreferred(_words, _analysis.trickyKeys(5)));
-          });
-          return KeyEventResult.ignored;
+          return _onEnter();
         }
 
         // ignore other special keys
-        // log("'${event.character}' '${event.logicalKey.keyLabel}'");
         if (event.character == null) {
           return KeyEventResult.ignored;
         }
 
-        _onKeypressed(event.character!);
-
-        return KeyEventResult.ignored;
+        return _onKeypressed(event.character!);
       }
     );
     _loadData();
@@ -151,57 +160,53 @@ class _MyHomePageState extends State<MyHomePage> {
     _reset();
   }
 
-
   void _loadData() async {
-    final _data = await rootBundle.loadString('assets/words.txt');
-    _words = _data.replaceAll("\r", "").split("\n");
-    var words = PracticeGenerator.build(_words);
-    words.shuffle();
-    words = words.sublist(0, min(30, words.length));
+    final words = await PracticeGenerator.loadWords(rootBundle);
 
     setState(() {
       _text = words.join(" ");
     });
   }
 
-  Widget _buildStatisticCard() {
-    const bold = TextStyle(fontWeight: FontWeight.bold);
+  Widget _buildDrawer() {
+    var items = <Widget>[];
+    var d = const BoxDecoration(color: Colors.blue,);
 
-    return Card(
-      color: (_analysis.accurracy < 100) ? Colors.amber : Colors.green,
-      child: Padding(padding: const EdgeInsets.all(20), 
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Flexible(flex: 1, fit: FlexFit.tight, child: 
-            Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Statistic", style: bold),
-              Text("Correct: ${_analysis.correct}",),
-              Text("Typed: ${_analysis.typed}",),
-              Text("Accurracy: ${_analysis.accurracy}%",),
-            ],)),
-            Flexible(flex: 1, fit: FlexFit.tight, child:
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("Elasped", style: bold),
-                Text(_analysis.elaspedDuration.toString().split('.').first.padLeft(8, "0")),
-              ],)),
-            Flexible(flex: 1, fit: FlexFit.tight, child:
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text("WPM", style: bold),
-                Text("${_analysis.wpmOverall}",),
-                Text("${_analysis.wpmIn10s} (in 10s)",),
-                Text("${_analysis.wpmIn1min} (in 1min)",),
-                Text("${_analysis.wpmIn10min} (in 10min)",),
-              ],)),              
-          ],
-        ),
-      ),
+    items.add(DrawerHeader(child: const Text('Layout'), decoration: d,),);
+
+
+    for (var k in layoutList.keys) {
+      items.add(
+        ListTile(
+          title: Text(layoutList[k]!.title),
+          onTap: () {
+            Navigator.pop(context);
+          },
+          selected: layoutList[k] == layout,
+        )
+      );
+    }
+
+    items.add(DrawerHeader(child: const Text('Practise'), decoration: d,),);
+
+    for (var k in practiseModes.keys) {
+      items.add(
+        ListTile(
+          title: Text(k),
+          onTap: () {
+            Navigator.pop(context);
+          },
+          selected: _practiceMode == practiseModes[k],
+        )
+      );
+    }
+
+    items.add(DrawerHeader(child: const Text('Settings'), decoration: d,),);
+
+    return ListView(
+          padding: EdgeInsets.zero,
+          children: 
+            items,
     );
   }
 
@@ -210,16 +215,28 @@ class _MyHomePageState extends State<MyHomePage> {
     const s = TextStyle(
       fontSize: 24,
       );
+    const italic = TextStyle(
+      fontSize: 12,
+      fontStyle: FontStyle.italic,
+    );
 
     Widget w = Column(
       children: [
-        _buildStatisticCard(),
+        StatisticCard(analysis: _analysis),
         Card(child:Padding(
           padding: const EdgeInsets.all(20), 
-          child: Text(_text, style: s,))),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_text, style: s,),
+              const Text(""),
+              (_enterPressed) ? null : const Text("Once complete, press ENTER to generate next word set.", style: italic),
+            ]))),
         Card(child: Padding(
           padding: const EdgeInsets.all(20), 
-          child:Text(_typed, style: s))),
+          child: Row(children: [
+            Text(_typed, style: s),
+          ]))),
         Keyboard(title: "Hits", map: _heats, max: _heatsMax, color: const Color.fromARGB(0, 255, 255, 0),),
         Keyboard(title: "Incorrect", map: _wrongs, max: _wrongsMax, color: const Color.fromARGB(0, 255, 0, 0),),
         // Text(_trickyKeys),
@@ -232,6 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
+      drawer: Drawer( child: _buildDrawer()),
       body: RawKeyboardListener(
         focusNode: _focusNode,
         child: w

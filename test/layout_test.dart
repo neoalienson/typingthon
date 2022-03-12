@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:typingthon/src/keymap.dart';
+import 'package:typingthon/src/layout.dart';
 
 void main() {
   test('Iris', () {
-    var keyMap = KeyMap(true,
+    var keyMap = Layout(
+      "Test",
+      true,
       KeyRow.r2,
       KeyRowKeys(KeyRow.r4, [], []),
       KeyRowKeys(KeyRow.r3, ['q','g','m','l','w'], ['y','f','u','b',';']),

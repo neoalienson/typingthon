@@ -1,4 +1,4 @@
-import 'src/keymap.dart';
+import 'src/layout.dart';
 import 'package:flutter/material.dart';
 
 
@@ -34,13 +34,13 @@ class Keyboard extends StatelessWidget  {
   Widget build(BuildContext context) {
     final w = <Widget>[];
     w.add(Text(title, style: const TextStyle(fontWeight: FontWeight.bold),));
-    for (var row in keyMap.rows.values) {
+    for (var row in layout.rows.values) {
       final r = <Widget>[];
       r.add(const Spacer());
       for (var k in row.left) {
         r.add(_keyCard(k));
       }
-      if (keyMap.isSplit) {
+      if (layout.isSplit) {
         r.add(const Spacer());
       }
       for (var k in row.right) {
