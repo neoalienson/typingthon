@@ -5,9 +5,9 @@ import 'dart:developer' show log;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/app_menu.dart';
-import 'package:typingthon/history_page.dart';
 import 'package:typingthon/keyboard.dart';
 import 'package:typingthon/statistic_card.dart';
+import 'detailed_analysis_page.dart';
 import 'src/layout.dart';
 import 'src/practice.dart';
 import 'src/analysis.dart';
@@ -196,7 +196,7 @@ class _MainPageState extends State<MainPage> {
     if (screenWidth >= breakpoint1) {
       final rightPanel = (screenWidth >= breakpoint2) ? <Widget>[
         separator,
-        Expanded(child: HistoryPage(analysis: _analysis,)),
+        Expanded(child: DetailedAnalysisPage(analysis: _analysis,)),
       ] : <Widget>[];
       w = Row(
         children: [
