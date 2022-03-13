@@ -11,8 +11,9 @@ class Keyboard extends StatelessWidget  {
   final Map<String, int>? lowerRight;
   final String? lowerRightFormat;
   final int max;
-  final Color color;
+  final Color colorMultipler;
   final bool colorInverse;
+  final Color colorBase;
   final String title;
   final subStyle = const TextStyle(fontSize: 8);
 
@@ -20,12 +21,13 @@ class Keyboard extends StatelessWidget  {
     required this.title,
     required this.map,
     required this.max,
-    required this.color,
+    required this.colorMultipler,
     this.lowerRight,
     this.lowerRightFormat,
     this.topRight,
     this.topRightFormat,
     this.colorInverse = false,
+    this.colorBase = const Color.fromARGB(0, 0, 0, 0)
     }) : super(key: key);
 
   Widget _keyCard(String text, [int? lowerRight, int? topRight]) {
@@ -40,19 +42,9 @@ class Keyboard extends StatelessWidget  {
       tr = (topRightFormat == null) ? topRight.toString() 
         : topRightFormat!.replaceAll("%d", topRight.toString());
     }
-    
-    var normalisedColor = (colorInverse) ? 
-      Color.fromARGB(255, 
-        color.red * map[text]! * 255 ~/ max ~/ 255,
-        color.green * map[text]! * 255 ~/ max ~/ 255,
-        color.blue * map[text]! * 255 ~/ max ~/ 255,
-        ) :
-      Color.fromARGB(255, 
-        255 - (255 - color.red) * map[text]! * 255 ~/ max ~/ 255,
-        255 - (255 - color.green) * map[text]! * 255 ~/ max ~/ 255,
-        255 - (255 - color.blue) * map[text]! * 255 ~/ max ~/ 255,
-        );
 
+    var normalisedColor = colorNormalise(map[text]!, colorInverse);
+      
     Card c = Card(
       child: Stack(children: [
         Center(child: Text(text)), 
@@ -63,7 +55,7 @@ class Keyboard extends StatelessWidget  {
                 child: Text(tr, style: subStyle,)
               ),
               Align(
-                alignment: const FractionalOffset(0.95, 0.9), 
+                alignment: const FractionalOffset(0.95, 0.98), 
                 child: Text(lr, style: subStyle,)
               ),              
             ],
@@ -74,6 +66,29 @@ class Keyboard extends StatelessWidget  {
     return SizedBox.square(
           child: c,
           dimension: keySize,);
+  }
+
+  Color colorNormalise(int v, bool inverse) {
+    var normalised = [
+      (v / max) * (255 - colorBase.red), 
+      (v / max) * (255 - colorBase.green),
+      (v / max) * (255 - colorBase.blue),
+      ];
+
+    var adjusted = (inverse) ? [
+      255 - (255 - colorMultipler.red) * normalised[0] ~/ 255,
+      255 - (255 - colorMultipler.green) *normalised[1] ~/ 255,
+      255 - (255 - colorMultipler.blue) * normalised[2] ~/ 255,
+    ] : [
+      colorMultipler.red * normalised[0] ~/ 255 + colorBase.red,
+      colorMultipler.green * normalised[1] ~/ 255 + colorBase.green,
+      colorMultipler.blue * normalised[2] ~/ 255 + colorBase.blue,
+    ];
+
+    return 
+      Color.fromARGB(255, 
+        adjusted[0], adjusted[1], adjusted[2]
+      );
   }
 
   @override

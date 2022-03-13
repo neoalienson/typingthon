@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math' show max, min;
+import 'dart:math' show min;
 // ignore: unused_import
 import 'dart:developer' show log;
 import 'package:flutter/material.dart';
@@ -25,12 +25,9 @@ class _MainPageState extends State<MainPage> {
   String _text = "";
   String _typed = "";
   late FocusNode _focusNode;
-  final _analysis = Analysis();
+  final _analysis = Analysis(layout);
   var _cursor = 0;
-  final _totals = <String, int>{};
-  var _totalMax = 1;
-  final _wrongs = <String, int>{};
-  final _percetages = <String, int>{};
+
   Timer? _updateTimer;
   final _practiceMode = PracticeMode.slowKeys;
   var _enterPressed = false;
@@ -63,30 +60,18 @@ class _MainPageState extends State<MainPage> {
     return KeyEventResult.ignored;
   }
 
-  KeyEventResult _onKeypressed(String ch) {
-    assert(ch.length == 1);
+  KeyEventResult _onKeypressed(String typed) {
+    assert(typed.length == 1);
+    if ((_cursor >= _text.length)) {
+      return KeyEventResult.ignored;
+    }
+
     var expected = _text[_cursor];
 
     setState(() {
-      if (_totals.containsKey(ch)) {
-        _totals[ch] = min(_totals[ch]! + 1, 255);
-      }
-      _totalMax = max(1, _totals.values.reduce((value, element) => max(value, element)));
-
-      if (_wrongs.containsKey(ch)) {
-        if (ch != expected) {
-          _wrongs[expected] = min(_wrongs[ch]! + 1, 255);
-        }
-        if (_totals.containsKey(expected)) {
-          if (_totals[expected]! > 0) {
-            _percetages[expected] = (_totals[expected]! - _wrongs[expected]!) * 100 ~/ _totals[expected]!;
-          }
-        }
-      }
-
-      _analysis.hit(ch, expected);
+      _analysis.hit(typed, expected);
       _cursor++;
-      _typed += ch;
+      _typed += typed;
     });
 
     return KeyEventResult.ignored;
@@ -104,12 +89,6 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-
-    for (var k in layout.keys.keys) {
-      _totals[k] = 0;
-      _wrongs[k] = 0;
-      _percetages[k] = 100;
-    }
 
     _focusNode = FocusNode(
       onKeyEvent: (node, event) {
@@ -191,19 +170,23 @@ class _MainPageState extends State<MainPage> {
               child: Text(_typed, style: _textStyleTyping),
             ),
           ]))),
-        Keyboard(title: "Hits", map: _totals, max: _totalMax, color: const Color.fromARGB(0, 255, 255, 0),),
+        Keyboard(
+          title: "Hits", 
+          map: _analysis.totals, 
+          max: _analysis.totalMax,
+          colorInverse: true,
+          colorMultipler: const Color.fromARGB(0, 255, 255, 0),
+          lowerRight: _analysis.totals,
+          ),
         Keyboard(
           title: "Incorrect",
-          map: _percetages, 
+          map: _analysis.percetages, 
           max: 100, 
-          color: const Color.fromARGB(0, 255, 255, 255),
-          colorInverse: true,
-          lowerRight: _percetages,
+          colorMultipler: const Color.fromARGB(0, 255, 255, 255),
+          colorBase: const Color.fromARGB(0, 64, 64, 64),
+          lowerRight: _analysis.percetages,
           lowerRightFormat: "%d%",
-          topRight: _totals,
           ),
-        // Text(_trickyKeys),
-        // Text(_analysis.wrongKeysDisplay),
       ],
     );
 
