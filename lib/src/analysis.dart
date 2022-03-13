@@ -1,6 +1,6 @@
 // ignore: unused_import
 import 'dart:developer';
-import 'dart:math' show max, min;
+import 'dart:math' show max;
 
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
