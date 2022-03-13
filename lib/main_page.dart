@@ -27,10 +27,10 @@ class _MainPageState extends State<MainPage> {
   late FocusNode _focusNode;
   final _analysis = Analysis();
   var _cursor = 0;
-  final _heats = <String, int>{};
-  var _heatsMax = 1;
+  final _totals = <String, int>{};
+  var _totalMax = 1;
   final _wrongs = <String, int>{};
-  var _wrongsMax = 1;
+  final _percetages = <String, int>{};
   Timer? _updateTimer;
   final _practiceMode = PracticeMode.slowKeys;
   var _enterPressed = false;
@@ -68,17 +68,21 @@ class _MainPageState extends State<MainPage> {
     var expected = _text[_cursor];
 
     setState(() {
-      if (_heats.containsKey(ch)) {
-        _heats[ch] = min(_heats[ch]! + 1, 255);
+      if (_totals.containsKey(ch)) {
+        _totals[ch] = min(_totals[ch]! + 1, 255);
       }
-      _heatsMax = max(1, _heats.values.reduce((value, element) => max(value, element)));
+      _totalMax = max(1, _totals.values.reduce((value, element) => max(value, element)));
 
       if (_wrongs.containsKey(ch)) {
         if (ch != expected) {
           _wrongs[expected] = min(_wrongs[ch]! + 1, 255);
         }
+        if (_totals.containsKey(expected)) {
+          if (_totals[expected]! > 0) {
+            _percetages[expected] = (_totals[expected]! - _wrongs[expected]!) * 100 ~/ _totals[expected]!;
+          }
+        }
       }
-      _wrongsMax = max(1, _wrongs.values.reduce((value, element) => max(value, element)));
 
       _analysis.hit(ch, expected);
       _cursor++;
@@ -102,8 +106,9 @@ class _MainPageState extends State<MainPage> {
     super.initState();
 
     for (var k in layout.keys.keys) {
-      _heats[k] = 0;
+      _totals[k] = 0;
       _wrongs[k] = 0;
+      _percetages[k] = 100;
     }
 
     _focusNode = FocusNode(
@@ -186,8 +191,17 @@ class _MainPageState extends State<MainPage> {
               child: Text(_typed, style: _textStyleTyping),
             ),
           ]))),
-        Keyboard(title: "Hits", map: _heats, max: _heatsMax, color: const Color.fromARGB(0, 255, 255, 0),),
-        Keyboard(title: "Incorrect", map: _wrongs, max: _wrongsMax, color: const Color.fromARGB(0, 255, 0, 0),),
+        Keyboard(title: "Hits", map: _totals, max: _totalMax, color: const Color.fromARGB(0, 255, 255, 0),),
+        Keyboard(
+          title: "Incorrect",
+          map: _percetages, 
+          max: 100, 
+          color: const Color.fromARGB(0, 255, 255, 255),
+          colorInverse: true,
+          lowerRight: _percetages,
+          lowerRightFormat: "%d%",
+          topRight: _totals,
+          ),
         // Text(_trickyKeys),
         // Text(_analysis.wrongKeysDisplay),
       ],
