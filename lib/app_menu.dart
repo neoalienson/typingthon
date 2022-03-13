@@ -3,7 +3,7 @@ import 'package:typingthon/src/analysis.dart';
 import 'package:typingthon/src/layout.dart';
 import 'package:typingthon/src/practice.dart';
 
-import 'history_page.dart';
+import 'detailed_analysis_page.dart';
 
 class AppMenu extends StatelessWidget {
   final Layout curreatLayout;
@@ -31,7 +31,7 @@ class AppMenu extends StatelessWidget {
           onTap: () {
             Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => HistoryPage(analysis: analysis,)),
+                MaterialPageRoute(builder: (context) => DetailedAnalysisPage(analysis: analysis,)),
                 );
           },
           selected: layouts[k] == curreatLayout,
