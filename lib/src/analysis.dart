@@ -1,9 +1,11 @@
 // ignore: unused_import
 import 'dart:developer';
+import 'dart:math' show max;
 
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import 'package:clock/clock.dart';
+import 'package:typingthon/src/layout.dart';
 
 class Hit {
   DateTime on;
@@ -33,19 +35,31 @@ class Analysis {
   var _typed = 0;
   var _start = DateTime(0);
   final _lowerCase = RegExp(r'[a-z]');
-  
+  final Layout layout;
   final _keyDuration = <String, Map<String, List<int>>>{};
   final _slowKeys = <DurationKeys>[];
   final _wrongKeys = <String, List<String>>{};
   final _hitKeys = <String, int>{};
+  final totals = <String, int>{};
+  int get totalMax {
+    return max(1, totals.values.reduce((value, element) => max(value, element)));
+  }
+  final wrongs = <String, int>{};
+  final percetages = <String, int>{};
 
   static const slowKeyCutoff = 5000000;
   static const slowKeyDisplay = 30;
   static const wrongKeyDisplay = 26;
 
-  Analysis() {
+  Analysis(this.layout) {
     reset();
     resetHits();
+
+    for (var ch in layout.keys.keys) {
+      totals[ch] = 0;
+      wrongs[ch] = 0;
+      percetages[ch] = 100;
+    }
 
     var start = "a".codeUnitAt(0);
     var end = "z".codeUnitAt(0);
@@ -137,33 +151,57 @@ class Analysis {
     _slowKeys.sort();
   }
 
-  void hit(String typed, String expected, [DateTime? on]) {
+  void hit(String typedRaw, String expectedRaw, [DateTime? on]) {
     var now = (on == null) ? clock.now() : on;
-    var correct = typed == expected;
-    final expectedLowered = expected.toLowerCase();
+    var correct = typedRaw == expectedRaw;
+    final expected = expectedRaw.toLowerCase();
+    final typed = typedRaw.toLowerCase();
+
     if (_hits.isEmpty) {
       _start = now;
     }
+
+    if (totals.containsKey(expected)) {
+        totals[expected] = totals[expected]! + 1;
+      }
+
     if (correct) {
       _correct++;
-      if (_hitKeys.containsKey(expectedLowered)) {
-        _hitKeys[expectedLowered] = _hitKeys[expectedLowered]! + 1;
+      if (_hitKeys.containsKey(expected)) {
+        _hitKeys[expected] = _hitKeys[expected]! + 1;
       }
-      if  (_hits.isNotEmpty && _lowerCase.hasMatch(expectedLowered)
+      if  (_hits.isNotEmpty && _lowerCase.hasMatch(expected)
         && _lowerCase.hasMatch(_hits.last.character)) {
         int d = now.difference(_hits.last.on).inMicroseconds;
         // do not analysis out lining 
         if (d < slowKeyCutoff) {
-          _keyDuration[_hits.last.character]![expectedLowered]!.add(d);
+          _keyDuration[_hits.last.character]![expected]!.add(d);
         }
       }
     } else {
-      if (_wrongKeys.containsKey(expectedLowered)) {
-        _wrongKeys[expectedLowered]!.add(typed);
+      if (_wrongKeys.containsKey(expected)) {
+        _wrongKeys[expected]!.add(typed);
+      }
+      if (wrongs.containsKey(expected)) {
+        wrongs[expected] = wrongs[expected]! + 1;
       }
     }
     _typed++;
-    _hits.add(Hit(now, correct, expectedLowered));
+ 
+    _hits.add(Hit(now, correct, expected));
+    _updatePercentages(typed, expected);
+  }
+
+  void _updatePercentages(String typed, String expected) {
+    if (wrongs.containsKey(typed)) {
+      if (totals.containsKey(expected)) {
+        if (totals[expected]! > 0) {
+          percetages[expected] = (totals[expected]! - wrongs[expected]!) * 100 ~/ totals[expected]!;
+        } else {
+          percetages[expected] = 0;
+        }
+      }
+    }
   }
 
   void remove(bool correct) {
