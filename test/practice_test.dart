@@ -3,7 +3,8 @@ import 'package:typingthon/src/practice.dart';
 
 void main() {
   test('Safety', () {
-    expect(PracticeGenerator.buildPreferred([], []), []);
-    expect(PracticeGenerator.build([], PracticeMode.singleLeftHome), []);
+    var practise = PracticeGenerator();
+    expect(practise.buildPreferred([]), []);
+    expect(practise.build(PracticeMode.singleLeftHome), []);
   });
 }

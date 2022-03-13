@@ -1,7 +1,7 @@
 import 'layouts/qgmlw.dart';
 import 'layouts/qwerty.dart';
 import 'layouts/qwerty_full.dart';
-final layoutList = {
+final layouts = {
   "qgmlw" : qgmlwLayout,
   "qwerty" : qwertyLayout,
   "qwerty_full" : qwertyFullLayout,
@@ -57,4 +57,4 @@ class Layout {
   }
 }
 
-var layout = layoutList["qgmlw"]!;
+var layout = layouts["qgmlw"]!;

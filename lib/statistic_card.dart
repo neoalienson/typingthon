@@ -33,6 +33,13 @@ class StatisticCard extends StatelessWidget {
                 const Text("Elasped", style: bold),
                 Text(analysis.elaspedDuration.toString().split('.').first.padLeft(8, "0")),
               ],)),
+            Flexible(flex: 1, fit: FlexFit.tight, child: 
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text("Practise mode", style: bold,),
+                ],
+              )),
             Flexible(flex: 1, fit: FlexFit.tight, child:
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,6 +50,9 @@ class StatisticCard extends StatelessWidget {
                 Text("${analysis.wpmIn1min} (in 1min)",),
                 Text("${analysis.wpmIn10min} (in 10min)",),
               ],)),              
+            ElevatedButton(
+              onPressed: () {}, 
+              child: const Text("More"))
           ],
         ),
       ),

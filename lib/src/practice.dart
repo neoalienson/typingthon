@@ -19,21 +19,19 @@ var practiseModes = {
 };
 
 class PracticeGenerator {
-  static Future<List<String>> loadWords(AssetBundle rootBundle) async {
+  var _words = <String>[];
+
+  Future loadWords(AssetBundle rootBundle) async {
     final _data = await rootBundle.loadString('assets/words.txt');
-    var _words = _data.replaceAll("\r", "").split("\n");
-    var words = PracticeGenerator.build(_words);
-    words.shuffle();
-    words = words.sublist(0, min(30, words.length));
-    return words;
+    _words = _data.replaceAll("\r", "").split("\n");
   }
 
-  static List<String> _buildHomeRow(List<String> words, PracticeMode strategy) {
+  List<String> _buildHomeRow(PracticeMode strategy) {
     List<String> selected = [];
     final keys = layout.keys;
     final homeRow = layout.homeRow;
 
-    for (var word in words) {
+    for (var word in _words) {
       if (word.trim().runes.length < 3) {
         continue;
       }
@@ -74,10 +72,10 @@ class PracticeGenerator {
     return selected;
   }
 
-  static List<String> buildPreferred(List<String> words, List<String> preferred) {
+  List<String> buildPreferred(List<String> preferred) {
     List<String> selected = [];
 
-    for (var word in words) {
+    for (var word in _words) {
       if (word.trim().runes.length < 3) {
         continue;
       }
@@ -93,15 +91,17 @@ class PracticeGenerator {
     return selected;
   }
 
-  static List<String> build(List<String> words, [PracticeMode strategy = PracticeMode.random]) {
+  List<String> build([PracticeMode strategy = PracticeMode.random]) {
     switch (strategy) {
       case PracticeMode.singleLeftHome:
       case PracticeMode.singleRightHome:
-        return _buildHomeRow(words, strategy);
+        return _buildHomeRow(strategy);
       case PracticeMode.slowKeys:
         throw UnimplementedError("Use buildPreferred instead");
       case PracticeMode.random:
-        return words..shuffle();
+        var r = _words.toList(growable: false);
+        r.shuffle();
+        return r.sublist(0, min(30, _words.length));
       default:
         throw UnimplementedError();
     }
