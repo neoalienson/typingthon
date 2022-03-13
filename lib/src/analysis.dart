@@ -35,13 +35,13 @@ class Analysis {
   final _lowerCase = RegExp(r'[a-z]');
   
   final _keyDuration = <String, Map<String, List<int>>>{};
-  final _trickKeys = <DurationKeys>[];
+  final _slowKeys = <DurationKeys>[];
   final _wrongKeys = <String, List<String>>{};
   final _hitKeys = <String, int>{};
 
   static const slowKeyCutoff = 5000000;
-  static const trickyKeyDisplay = 5;
-  static const wrongKeyDisplay = 5;
+  static const slowKeyDisplay = 30;
+  static const wrongKeyDisplay = 26;
 
   Analysis() {
     reset();
@@ -78,9 +78,9 @@ class Analysis {
     _sortTrickKeys();
 
     var f = NumberFormat("###.00");
-    for (var i = 0;  i < _trickKeys.length && i < trickyKeyDisplay; i++) {
-      String n = f.format((_trickKeys[i].duration / 1000000));
-      s += "${_trickKeys[i].displaykeys} ${n}s  ${_trickKeys[i].hit}\n";
+    for (var i = 0;  i < _slowKeys.length && i < slowKeyDisplay; i++) {
+      String n = f.format((_slowKeys[i].duration / 1000000));
+      s += "${_slowKeys[i].displaykeys} ${n}s  ${_slowKeys[i].hit}\n";
     }
     return s;
   }
@@ -106,15 +106,15 @@ class Analysis {
 
     _sortTrickKeys();
 
-    for (var i = 0;  i < _trickKeys.length && i < top; i++) {
-      s.add(_trickKeys[i].keys);
+    for (var i = 0;  i < _slowKeys.length && i < top; i++) {
+      s.add(_slowKeys[i].keys);
     }
     return s;
   }
 
   void _sortTrickKeys() {
     // recalculate average
-    _trickKeys.clear();
+    _slowKeys.clear();
     var seen = <String>{};
 
     for (var i = 0; i < _hits.length - 1; i++) {
@@ -129,12 +129,12 @@ class Analysis {
         var displayKey = "${_hits[i].character} => ${_hits[i + 1].character}";
         var key = "${_hits[i].character}${_hits[i + 1].character}";
         if (!seen.contains(key)) {
-          _trickKeys.add(DurationKeys(keys.average, key, displayKey, keys.length));
+          _slowKeys.add(DurationKeys(keys.average, key, displayKey, keys.length));
           seen.add(key);
         }
       }
     }
-    _trickKeys.sort();
+    _slowKeys.sort();
   }
 
   void hit(String typed, String expected, [DateTime? on]) {
