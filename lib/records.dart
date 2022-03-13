@@ -16,5 +16,6 @@ var records = {
   DateTime(2020, 3, 10) : 28,
   DateTime(2020, 3, 11) : 29,
   DateTime(2020, 3, 12) : 30,
-  DateTime(2020, 3, 13) : 30,
+  DateTime(2020, 3, 13) : 31,
+  DateTime(2020, 3, 13) : 33,
 };

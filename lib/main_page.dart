@@ -5,7 +5,6 @@ import 'dart:developer' show log;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/app_menu.dart';
-import 'package:typingthon/keyboard.dart';
 import 'package:typingthon/statistic_card.dart';
 import 'detailed_analysis_page.dart';
 import 'src/layout.dart';
@@ -170,23 +169,6 @@ class _MainPageState extends State<MainPage> {
               child: Text(_typed, style: _textStyleTyping),
             ),
           ]))),
-        Keyboard(
-          title: "Hits", 
-          map: _analysis.totals, 
-          max: _analysis.totalMax,
-          colorInverse: true,
-          colorMultipler: const Color.fromARGB(0, 255, 255, 0),
-          lowerRight: _analysis.totals,
-          ),
-        Keyboard(
-          title: "Incorrect",
-          map: _analysis.percetages, 
-          max: 100, 
-          colorMultipler: const Color.fromARGB(0, 255, 255, 255),
-          colorBase: const Color.fromARGB(0, 64, 64, 64),
-          lowerRight: _analysis.percetages,
-          lowerRightFormat: "%d%",
-          ),
       ],
     );
 
