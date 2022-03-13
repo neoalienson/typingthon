@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:typingthon/src/analysis.dart';
 
 class HistoryPage extends StatelessWidget {
-  const HistoryPage({Key? key}) : super(key: key);
+  final Analysis analysis;
+
+  const HistoryPage({Key? key, 
+    required this.analysis
+    }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +14,7 @@ class HistoryPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("History"),
       ),
-      body: const Text("D"),
+      body: Text(analysis.trickyKeysDisplay),
     );
   }
 }

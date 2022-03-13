@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:typingthon/src/analysis.dart';
 import 'package:typingthon/src/layout.dart';
 import 'package:typingthon/src/practice.dart';
+
 import 'history_page.dart';
 
 class AppMenu extends StatelessWidget {
   final Layout curreatLayout;
   final PracticeMode currentPracticeMode;
+  final Analysis analysis;
 
   const AppMenu({Key? key,
     required this.curreatLayout,
     required this.currentPracticeMode,
+    required this.analysis,
   }) : super(key: key);
 
   @override
@@ -27,7 +31,7 @@ class AppMenu extends StatelessWidget {
           onTap: () {
             Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const HistoryPage()),
+                MaterialPageRoute(builder: (context) => HistoryPage(analysis: analysis,)),
                 );
           },
           selected: layouts[k] == curreatLayout,

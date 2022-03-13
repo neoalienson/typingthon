@@ -158,7 +158,10 @@ class _MainPageState extends State<MainPage> {
     final separator = Container(width: 0.5, color: Colors.black);
     const breakpoint1 = 800.0;
     const breakpoint2 = 1300.0;
-    final appMenu = AppMenu(curreatLayout: layout, currentPracticeMode: _practiceMode,);
+    final appMenu = AppMenu(
+      curreatLayout: layout, 
+      currentPracticeMode: _practiceMode, 
+      analysis: _analysis,);
 
     Widget w = Column(
       children: [
@@ -193,7 +196,7 @@ class _MainPageState extends State<MainPage> {
     if (screenWidth >= breakpoint1) {
       final rightPanel = (screenWidth >= breakpoint2) ? <Widget>[
         separator,
-        const Expanded(child: HistoryPage()),
+        Expanded(child: HistoryPage(analysis: _analysis,)),
       ] : <Widget>[];
       w = Row(
         children: [
