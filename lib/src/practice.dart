@@ -1,7 +1,11 @@
-import 'dart:math';
+// ignore: unused_import
+import 'dart:developer';
+import 'dart:math' show min;
 
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:xml/xml.dart' as xml;
+import 'package:html/parser.dart' show parse;
 import 'layout.dart';
 
 enum PracticeMode {
@@ -20,10 +24,44 @@ var practiseModes = {
 
 class PracticeGenerator {
   var _words = <String>[];
+  var _text = "";
+  String get text {
+    return _text;
+  }
+
 
   Future loadWords(AssetBundle rootBundle) async {
     final _data = await rootBundle.loadString('assets/words.txt');
     _words = _data.replaceAll("\r", "").split("\n");
+  }
+
+  Future<List<String>> loadXmlFromFile(AssetBundle rootBundle, String path) async {
+    return _processXml(await rootBundle.loadString(path));
+  }
+
+  Future<List<String>> loadXmlFromUrl(String uRL, [http.Client? client]) async {
+    var c = (client == null) ? http.Client() : client;
+
+    final response = await c.get(Uri.parse(uRL));
+    if (response.statusCode == 200) {
+      return _processXml(response.body);
+      } else {
+      _text = "Error loading...";
+    }
+
+    return [];
+  }
+
+  List<String> _processXml(String text) {
+    final textXml = xml.XmlDocument.parse(text);
+    final elements = textXml.findAllElements("content:encoded");
+    var texts = <String>[];
+    for (var element in elements) {
+      final html = parse(element.text);
+      texts.add(html.documentElement!.text.replaceAll(RegExp(r'(\n){2,}'), "\n").trim()
+        .replaceAll('“', '"').replaceAll('”', '"').replaceAll("’", "'").replaceAll("—", " - "));
+    }
+    return texts;
   }
 
   List<String> _buildHomeRow(PracticeMode strategy) {

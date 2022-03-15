@@ -39,6 +39,9 @@ class _MainPageState extends State<MainPage> {
     fontStyle: FontStyle.italic,
   );
 
+  final _textScrollController = ScrollController();
+  final _typedScrollController = ScrollController();
+
   void _reset() {
     _analysis.reset();
     _typed = "";
@@ -76,7 +79,7 @@ class _MainPageState extends State<MainPage> {
     return KeyEventResult.ignored;
   }
 
-  KeyEventResult _onEnter() {
+  KeyEventResult _onF5() {
     setState(() {
       _enterPressed = true;
       _nextRound(_practice.buildPreferred(_analysis.trickyKeys(5)));
@@ -90,27 +93,7 @@ class _MainPageState extends State<MainPage> {
     super.initState();
 
     _focusNode = FocusNode(
-      onKeyEvent: (node, event) {
-        // process only key down and repeat
-        if (event.runtimeType != KeyDownEvent && event.runtimeType != KeyRepeatEvent) {
-          return KeyEventResult.ignored;
-        }
-
-        if (event.logicalKey == LogicalKeyboardKey.backspace) {
-          return _onBackspace();
-        }
-
-        if (event.logicalKey == LogicalKeyboardKey.enter) {
-          return _onEnter();
-        }
-
-        // ignore other special keys
-        if (event.character == null) {
-          return KeyEventResult.ignored;
-        }
-
-        return _onKeypressed(event.character!);
-      }
+      onKeyEvent: _onKeyEvent
     );
     _loadData();
 
@@ -118,6 +101,37 @@ class _MainPageState extends State<MainPage> {
       setState(() {
       });
     });
+  }
+
+  KeyEventResult _onKeyEvent(node, event) {
+    // process only key down and repeat
+    if (event.runtimeType != KeyDownEvent && event.runtimeType != KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    _textScrollController.animateTo((_typed.length ~/ 70).toDouble() * 24,
+      curve: Curves.ease, duration: const Duration(milliseconds: 200));
+    if (_typedScrollController.hasClients) {
+      _typedScrollController.animateTo(_typedScrollController.position.maxScrollExtent,
+        curve: Curves.ease, duration: const Duration(milliseconds: 200));
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.backspace) {
+      return _onBackspace();
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.f5) {
+      return _onF5();
+    }
+
+    // ignore other special keys
+    if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
+      return KeyEventResult.ignored;
+    }
+
+    String ch = (event.character == null) ? "\r" : event.character!;
+
+    return _onKeypressed(ch);
   }
 
   void _nextRound(List<String> words) {
@@ -128,10 +142,14 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _loadData() async {
-    await _practice.loadWords(rootBundle);
+    // await _practice.loadWords(rootBundle);
+    // text = _practice.build(PracticeMode.random).join(" ")
+    // text = await _practice.loadXmlFromUrl("https://www.technologyreview.com/feed/");
+    var texts = await _practice.loadXmlFromFile(rootBundle, "assets/texts/1.txt"); 
+    texts.shuffle();
 
     setState(() {
-      _text = _practice.build(PracticeMode.random).join(" ");
+      _text = texts.first;
     });
   }
 
@@ -145,30 +163,52 @@ class _MainPageState extends State<MainPage> {
       curreatLayout: layout, 
       currentPracticeMode: _practiceMode, 
       analysis: _analysis,);
+    const subStyle = TextStyle(fontSize: 12);
 
     Widget w = Column(
       children: [
         StatisticCard(analysis: _analysis),
-        Card(child:Padding(
-          padding: const EdgeInsets.all(20), 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(_text, style: _textStyleTyping,),
-              const Text(""),
-              (_enterPressed) ? const Text("") 
-                : Text("Once complete, press ENTER to generate next word set.", style: _textStyleInfo),
-            ]))),
+        SizedBox(height: 300, child: 
+          Card(child:Padding(
+            padding: const EdgeInsets.all(20), 
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 200, child: 
+                SingleChildScrollView(child: 
+                  Text(_text, style: _textStyleTyping,),
+                  controller: _textScrollController,
+                ),),
+                const SizedBox(height: 10,),
+                (_enterPressed) ? const Text("") 
+                  : Text("Once complete, press F5 to generate next word set.", style: _textStyleInfo),
+            ])
+
+          ))
+        ),
+       
         Card(child: Padding(
           padding: const EdgeInsets.all(20), 
-          child: Row(children: [
-            (_typed.isEmpty) ? 
-            Text("Type anyway from screen to begin.", style: _textStyleInfo,):
-            Flexible(
-              flex: 1,
-              child: Text(_typed, style: _textStyleTyping),
+          child: SizedBox(height: 100, 
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(alignment: Alignment.topRight, child:
+                  Text("${_typed.length.toString()}/${_text.length.toString()}", style: subStyle,)
+                  ),
+                (_typed.isEmpty) ? 
+                Text("Type anyway from screen to begin.", style: _textStyleInfo,):
+                Expanded(child: 
+                  SingleChildScrollView(child: 
+                    Text(_typed, style: _textStyleTyping),
+                    controller: _typedScrollController,
+                  ),
+                ),
+              ]
             ),
-          ]))),
+          )
+        ))
+        ,
       ],
     );
 
