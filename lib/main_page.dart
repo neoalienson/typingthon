@@ -3,7 +3,7 @@ import 'dart:math' show min;
 // ignore: unused_import
 import 'dart:developer' show log;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
+import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey;
 import 'package:typingthon/app_menu.dart';
 import 'package:typingthon/statistic_card.dart';
 import 'detailed_analysis_page.dart';
@@ -76,7 +76,7 @@ class _MainPageState extends State<MainPage> {
     return KeyEventResult.ignored;
   }
 
-  KeyEventResult _onEnter() {
+  KeyEventResult _onF5() {
     setState(() {
       _enterPressed = true;
       _nextRound(_practice.buildPreferred(_analysis.trickyKeys(5)));
@@ -100,16 +100,18 @@ class _MainPageState extends State<MainPage> {
           return _onBackspace();
         }
 
-        if (event.logicalKey == LogicalKeyboardKey.enter) {
-          return _onEnter();
+        if (event.logicalKey == LogicalKeyboardKey.f5) {
+          return _onF5();
         }
 
         // ignore other special keys
-        if (event.character == null) {
+        if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
           return KeyEventResult.ignored;
         }
 
-        return _onKeypressed(event.character!);
+        String ch = (event.character == null) ? "\r" : event.character!;
+
+        return _onKeypressed(ch);
       }
     );
     _loadData();
@@ -128,10 +130,14 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _loadData() async {
-    await _practice.loadWords(rootBundle);
+    var text = "";
+    // await _practice.loadWords(rootBundle);
+    // text = _practice.build(PracticeMode.random).join(" ")
+    // text = await _practice.loadXmlFromUrl("https://www.technologyreview.com/feed/");
+    text = await _practice.loadXmlFromUrl("assets/texts/1.txt"); 
 
     setState(() {
-      _text = _practice.build(PracticeMode.random).join(" ");
+      _text = text;
     });
   }
 
@@ -145,30 +151,49 @@ class _MainPageState extends State<MainPage> {
       curreatLayout: layout, 
       currentPracticeMode: _practiceMode, 
       analysis: _analysis,);
+    const subStyle = TextStyle(fontSize: 12);
 
     Widget w = Column(
       children: [
         StatisticCard(analysis: _analysis),
-        Card(child:Padding(
-          padding: const EdgeInsets.all(20), 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(_text, style: _textStyleTyping,),
-              const Text(""),
-              (_enterPressed) ? const Text("") 
-                : Text("Once complete, press ENTER to generate next word set.", style: _textStyleInfo),
-            ]))),
+        SizedBox(height: 300, child: 
+          Card(child:Padding(
+            padding: const EdgeInsets.all(20), 
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SingleChildScrollView(child: 
+                  Text(_text, style: _textStyleTyping,),
+                ),
+                const SizedBox(height: 10,),
+                (_enterPressed) ? const Text("") 
+                  : Text("Once complete, press F5 to generate next word set.", style: _textStyleInfo),
+            ])
+
+          ))
+        ),
+       
         Card(child: Padding(
           padding: const EdgeInsets.all(20), 
-          child: Row(children: [
-            (_typed.isEmpty) ? 
-            Text("Type anyway from screen to begin.", style: _textStyleInfo,):
-            Flexible(
-              flex: 1,
-              child: Text(_typed, style: _textStyleTyping),
+          child: SizedBox(height: 300, 
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(alignment: Alignment.topRight, child:
+                  Text("${_typed.length.toString()}/${_text.length.toString()}", style: subStyle,)
+                  ),
+                (_typed.isEmpty) ? 
+                Text("Type anyway from screen to begin.", style: _textStyleInfo,):
+                Expanded(child: 
+                  SingleChildScrollView(child: 
+                    Text(_typed, style: _textStyleTyping),
+                  ),
+                ),
+              ]
             ),
-          ]))),
+          )
+        ))
+        ,
       ],
     );
 

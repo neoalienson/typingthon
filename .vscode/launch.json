@@ -5,12 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "typingthon",
+            "name": "Chrome (requires cors disable to access rss feed)",
             "request": "launch",
             "type": "dart",
             "args": [
                 "-d",
-                "chrome"
+                "chrome",
+            ]
+        },
+        {
+            "name": "Windows",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "-d",
+                "windows",
             ]
         },
         {
