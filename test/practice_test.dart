@@ -21,13 +21,16 @@ void main() {
 
     final content = await File('test_resources/technologyreview.txt').readAsString();
     final expected = await File('test_resources/technologyreview_output.txt').readAsString();
-
-    when(client
-        .get(Uri.parse('https://www.technologyreview.com/feed/')))
+    when(
+      client.get(Uri.parse('https://www.technologyreview.com/feed/')))
       .thenAnswer((_) async =>
         http.Response(content, 200, headers: {
           "content-type": "application/json; charset=utf-8",
-          }));
-      expect(await practise.loadXmlFromUrl('https://www.technologyreview.com/feed/', client), expected);
+        })
+    );
+    var respond = await practise.loadXmlFromUrl('https://www.technologyreview.com/feed/', client);  
+    // File("output.txt").writeAsStringSync(respond.join("\n"));
+      
+    expect(respond.join("\n"), expected);
   });
 }

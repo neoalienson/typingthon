@@ -3,7 +3,7 @@ import 'dart:math' show min;
 // ignore: unused_import
 import 'dart:developer' show log;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey;
+import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/app_menu.dart';
 import 'package:typingthon/statistic_card.dart';
 import 'detailed_analysis_page.dart';
@@ -38,6 +38,9 @@ class _MainPageState extends State<MainPage> {
     fontSize: 12,
     fontStyle: FontStyle.italic,
   );
+
+  final _textScrollController = ScrollController();
+  final _typedScrollController = ScrollController();
 
   void _reset() {
     _analysis.reset();
@@ -90,29 +93,7 @@ class _MainPageState extends State<MainPage> {
     super.initState();
 
     _focusNode = FocusNode(
-      onKeyEvent: (node, event) {
-        // process only key down and repeat
-        if (event.runtimeType != KeyDownEvent && event.runtimeType != KeyRepeatEvent) {
-          return KeyEventResult.ignored;
-        }
-
-        if (event.logicalKey == LogicalKeyboardKey.backspace) {
-          return _onBackspace();
-        }
-
-        if (event.logicalKey == LogicalKeyboardKey.f5) {
-          return _onF5();
-        }
-
-        // ignore other special keys
-        if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
-          return KeyEventResult.ignored;
-        }
-
-        String ch = (event.character == null) ? "\r" : event.character!;
-
-        return _onKeypressed(ch);
-      }
+      onKeyEvent: _onKeyEvent
     );
     _loadData();
 
@@ -120,6 +101,37 @@ class _MainPageState extends State<MainPage> {
       setState(() {
       });
     });
+  }
+
+  KeyEventResult _onKeyEvent(node, event) {
+    // process only key down and repeat
+    if (event.runtimeType != KeyDownEvent && event.runtimeType != KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    _textScrollController.animateTo((_typed.length ~/ 70).toDouble() * 24,
+      curve: Curves.ease, duration: const Duration(milliseconds: 200));
+    if (_typedScrollController.hasClients) {
+      _typedScrollController.animateTo(_typedScrollController.position.maxScrollExtent,
+        curve: Curves.ease, duration: const Duration(milliseconds: 200));
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.backspace) {
+      return _onBackspace();
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.f5) {
+      return _onF5();
+    }
+
+    // ignore other special keys
+    if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
+      return KeyEventResult.ignored;
+    }
+
+    String ch = (event.character == null) ? "\r" : event.character!;
+
+    return _onKeypressed(ch);
   }
 
   void _nextRound(List<String> words) {
@@ -130,14 +142,14 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _loadData() async {
-    var text = "";
     // await _practice.loadWords(rootBundle);
     // text = _practice.build(PracticeMode.random).join(" ")
     // text = await _practice.loadXmlFromUrl("https://www.technologyreview.com/feed/");
-    text = await _practice.loadXmlFromUrl("assets/texts/1.txt"); 
+    var texts = await _practice.loadXmlFromFile(rootBundle, "assets/texts/1.txt"); 
+    texts.shuffle();
 
     setState(() {
-      _text = text;
+      _text = texts.first;
     });
   }
 
@@ -162,9 +174,11 @@ class _MainPageState extends State<MainPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height: 200, child: 
                 SingleChildScrollView(child: 
                   Text(_text, style: _textStyleTyping,),
-                ),
+                  controller: _textScrollController,
+                ),),
                 const SizedBox(height: 10,),
                 (_enterPressed) ? const Text("") 
                   : Text("Once complete, press F5 to generate next word set.", style: _textStyleInfo),
@@ -175,7 +189,7 @@ class _MainPageState extends State<MainPage> {
        
         Card(child: Padding(
           padding: const EdgeInsets.all(20), 
-          child: SizedBox(height: 300, 
+          child: SizedBox(height: 100, 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -187,6 +201,7 @@ class _MainPageState extends State<MainPage> {
                 Expanded(child: 
                   SingleChildScrollView(child: 
                     Text(_typed, style: _textStyleTyping),
+                    controller: _typedScrollController,
                   ),
                 ),
               ]
