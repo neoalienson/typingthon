@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' show min;
 // ignore: unused_import
 import 'dart:developer' show log;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/app_menu.dart';
@@ -28,12 +29,10 @@ class _MainPageState extends State<MainPage> {
   var _cursor = 0;
 
   Timer? _updateTimer;
-  final _practiceMode = PracticeMode.slowKeys;
+  var _practiceMode = PracticeMode.slowKeys;
   var _enterPressed = false;
   final _practice = PracticeGenerator();
-  final _textStyleTyping = const TextStyle(
-    fontSize: 24,
-    );
+  final _textStyleTyping = GoogleFonts.robotoMono(fontSize: 24);
   final _textStyleInfo = const TextStyle(
     fontSize: 12,
     fontStyle: FontStyle.italic,
@@ -101,6 +100,9 @@ class _MainPageState extends State<MainPage> {
     _loadData();
 
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_practiceMode == PracticeMode.minutes5 && _analysis.elaspedDuration.inMinutes >= 5) {
+        _updateTimer!.cancel();
+      }
       setState(() {
       });
     });
@@ -162,6 +164,10 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  void _on5minsTest() {
+    _practiceMode = PracticeMode.minutes5;
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -169,9 +175,12 @@ class _MainPageState extends State<MainPage> {
     const breakpoint1 = 800.0;
     const breakpoint2 = 1300.0;
     final appMenu = AppMenu(
+      hambgerMenuMode: (screenWidth < breakpoint1),
       curreatLayout: layout, 
       currentPracticeMode: _practiceMode, 
-      analysis: _analysis,);
+      analysis: _analysis,
+      on5minTest: _on5minsTest,
+      );
     const subStyle = TextStyle(fontSize: 12);
 
     Widget w = Column(

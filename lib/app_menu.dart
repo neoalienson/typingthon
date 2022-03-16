@@ -6,14 +6,18 @@ import 'package:typingthon/src/practice.dart';
 import 'detailed_analysis_page.dart';
 
 class AppMenu extends StatelessWidget {
+  final bool hambgerMenuMode;
   final Layout curreatLayout;
   final PracticeMode currentPracticeMode;
   final Analysis analysis;
+  final Function on5minTest;
 
   const AppMenu({Key? key,
+    required this.hambgerMenuMode,
     required this.curreatLayout,
     required this.currentPracticeMode,
     required this.analysis,
+    required this.on5minTest
   }) : super(key: key);
 
   @override
@@ -46,7 +50,12 @@ class AppMenu extends StatelessWidget {
         ListTile(
           title: Text(k),
           onTap: () {
-            Navigator.pop(context);
+            if (hambgerMenuMode) {
+              Navigator.pop(context);
+            }
+            if (practiseModes[k] == PracticeMode.minutes5) {
+              on5minTest();
+            }
           },
           selected: currentPracticeMode == practiseModes[k],
         )
