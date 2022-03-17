@@ -1,3 +1,4 @@
+import 'dart:async';
 // ignore: unused_import
 import 'dart:developer';
 import 'dart:math' show min;
@@ -16,19 +17,43 @@ enum PracticeMode {
   minutes5,
 }
 
-var practiseModes = {
-  "Slow Keys" : PracticeMode.slowKeys,
-  "Random" : PracticeMode.random,
-  "5 minutes" : PracticeMode.minutes5,
+const practisModeNames = {
+  PracticeMode.minutes5 : "5 minutes",
+  PracticeMode.random : "Random",
+  PracticeMode.slowKeys : "Slow Keys",
 };
 
-class PracticeGenerator {
+class PracticeEngine {
   var _words = <String>[];
+  bool _running = false;
+
+  bool get running => _running;
+
+  Timer? _testTimer;
   var _text = "";
   String get text {
     return _text;
   }
+  PracticeMode mode = PracticeMode.slowKeys;
 
+  void start() {
+    _running = true;
+    if (mode == PracticeMode.minutes5) {
+      _testTimer = Timer(const Duration(minutes: 5), () {
+         _running = false;
+      });
+    }
+  }
+
+  void end() {
+    _running = false;
+  }
+
+  void dispose() {
+    if (_testTimer != null) {
+      _testTimer!.cancel();
+    }
+  }
 
   Future loadWords(AssetBundle rootBundle) async {
     final _data = await rootBundle.loadString('assets/words.txt');

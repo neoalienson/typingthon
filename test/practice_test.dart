@@ -10,13 +10,13 @@ import 'practice_test.mocks.dart';
 @GenerateMocks([http.Client]) 
 void main() {
   test('Safety', () {
-    var practise = PracticeGenerator();
+    var practise = PracticeEngine();
     expect(practise.buildPreferred([]), []);
     expect(practise.build(PracticeMode.singleLeftHome), []);
   });
 
   test("Load content", () async {
-    var practise = PracticeGenerator();
+    var practise = PracticeEngine();
     final client = MockClient();
 
     final content = await File('test_resources/technologyreview.txt').readAsString();

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' show min;
 // ignore: unused_import
 import 'dart:developer' show log;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/app_menu.dart';
@@ -24,16 +25,14 @@ class _MainPageState extends State<MainPage> {
   String _text = "";
   String _typed = "";
   late FocusNode _focusNode;
-  final _analysis = Analysis(layout);
+  var _analysis = Analysis(layout);
   var _cursor = 0;
 
   Timer? _updateTimer;
-  final _practiceMode = PracticeMode.slowKeys;
   var _enterPressed = false;
-  final _practice = PracticeGenerator();
-  final _textStyleTyping = const TextStyle(
-    fontSize: 24,
-    );
+  final _practice = PracticeEngine();
+  final _textStyleTyping = GoogleFonts.robotoMono(
+    fontSize: 24);
   final _textStyleInfo = const TextStyle(
     fontSize: 12,
     fontStyle: FontStyle.italic,
@@ -43,7 +42,6 @@ class _MainPageState extends State<MainPage> {
   final _typedScrollController = ScrollController();
 
   void _reset() {
-    _analysis.reset();
     _typed = "";
     _cursor = 0;
   }
@@ -101,6 +99,9 @@ class _MainPageState extends State<MainPage> {
     _loadData();
 
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_practice.mode == PracticeMode.minutes5 && _analysis.elaspedDuration.inMinutes >= 5) {
+        _updateTimer!.cancel();
+      }
       setState(() {
       });
     });
@@ -112,14 +113,24 @@ class _MainPageState extends State<MainPage> {
       return KeyEventResult.ignored;
     }
 
-    if (event.logicalKey == LogicalKeyboardKey.backspace) {
-      _updateTextScrolls();
-      return _onBackspace();
-    }
-
     if (event.logicalKey == LogicalKeyboardKey.f5) {
       return _onF5();
     }
+
+    // practice was started and practice timer is ended
+    if (_analysis.start.year != 0 && !_practice.running) {
+      return KeyEventResult.ignored;
+    }
+    if (!_practice.running) {
+      _practice.start();
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.backspace) {
+      _updateTextScrolls(context);
+      return _onBackspace();
+    }
+
+
 
     // ignore other special keys
     if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
@@ -129,16 +140,16 @@ class _MainPageState extends State<MainPage> {
     String ch = (event.character == null) ? "\n" : event.character!;
 
     _onKeypressed(ch);
-    _updateTextScrolls();
+    _updateTextScrolls(context);
 
     return KeyEventResult.ignored;
   }
 
-  void _updateTextScrolls() {
-    _textScrollController.animateTo((_typed.length ~/ 70).toDouble() * 24,
-      curve: Curves.ease, duration: const Duration(milliseconds: 200));
+  void _updateTextScrolls(BuildContext context) {
     if (_typedScrollController.hasClients) {
       _typedScrollController.animateTo(_typedScrollController.position.maxScrollExtent,
+        curve: Curves.ease, duration: const Duration(milliseconds: 200));
+      _textScrollController.animateTo(_typedScrollController.position.maxScrollExtent,
         curve: Curves.ease, duration: const Duration(milliseconds: 200));
     }
   }
@@ -162,6 +173,13 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  void _on5minsTest() {
+    _practice.mode = PracticeMode.minutes5;
+    _reset();
+    _loadData();
+    _analysis = Analysis(layout);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -169,14 +187,17 @@ class _MainPageState extends State<MainPage> {
     const breakpoint1 = 800.0;
     const breakpoint2 = 1300.0;
     final appMenu = AppMenu(
+      hambgerMenuMode: (screenWidth < breakpoint1),
       curreatLayout: layout, 
-      currentPracticeMode: _practiceMode, 
-      analysis: _analysis,);
+      currentPracticeMode: _practice.mode, 
+      analysis: _analysis,
+      on5minTest: _on5minsTest,
+      );
     const subStyle = TextStyle(fontSize: 12);
 
     Widget w = Column(
       children: [
-        StatisticCard(analysis: _analysis),
+        StatisticCard(analysis: _analysis, practiceEngine: _practice,),
         SizedBox(height: 300, child: 
           Card(child:Padding(
             padding: const EdgeInsets.all(20), 
@@ -184,8 +205,11 @@ class _MainPageState extends State<MainPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 200, child: 
-                SingleChildScrollView(child: 
-                  Text(_text, style: _textStyleTyping,),
+                SingleChildScrollView(child:
+                  Text(_text,
+                    style: _textStyleTyping,
+                    overflow: TextOverflow.fade,
+                  ),
                   controller: _textScrollController,
                 ),),
                 const SizedBox(height: 10,),
@@ -265,6 +289,7 @@ class _MainPageState extends State<MainPage> {
   @override
   void dispose() {
     _updateTimer?.cancel();
+    _practice.dispose();
     super.dispose();
   }
 }
