@@ -25,7 +25,7 @@ class _MainPageState extends State<MainPage> {
   String _text = "";
   String _typed = "";
   late FocusNode _focusNode;
-  final _analysis = Analysis(layout);
+  var _analysis = Analysis(layout);
   var _cursor = 0;
 
   Timer? _updateTimer;
@@ -42,7 +42,6 @@ class _MainPageState extends State<MainPage> {
   final _typedScrollController = ScrollController();
 
   void _reset() {
-    _analysis.reset();
     _typed = "";
     _cursor = 0;
   }
@@ -114,14 +113,24 @@ class _MainPageState extends State<MainPage> {
       return KeyEventResult.ignored;
     }
 
+    if (event.logicalKey == LogicalKeyboardKey.f5) {
+      return _onF5();
+    }
+
+    // practice was started and practice timer is ended
+    if (_analysis.start.year != 0 && !_practice.running) {
+      return KeyEventResult.ignored;
+    }
+    if (!_practice.running) {
+      _practice.start();
+    }
+
     if (event.logicalKey == LogicalKeyboardKey.backspace) {
       _updateTextScrolls(context);
       return _onBackspace();
     }
 
-    if (event.logicalKey == LogicalKeyboardKey.f5) {
-      return _onF5();
-    }
+
 
     // ignore other special keys
     if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
@@ -165,7 +174,10 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _on5minsTest() {
-    _practice.setMode(PracticeMode.minutes5);
+    _practice.mode = PracticeMode.minutes5;
+    _reset();
+    _loadData();
+    _analysis = Analysis(layout);
   }
 
   @override
@@ -277,6 +289,7 @@ class _MainPageState extends State<MainPage> {
   @override
   void dispose() {
     _updateTimer?.cancel();
+    _practice.dispose();
     super.dispose();
   }
 }

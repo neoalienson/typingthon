@@ -19,9 +19,13 @@ class StatisticCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const bold = TextStyle(fontWeight: FontWeight.bold);
+    var cardColor = Colors.white;
+    if (_practiceEngine.running) {
+      cardColor = (_analysis.accurracy < 100) ? Colors.amber : Colors.green;
+    }
 
     return Card(
-      color: (_analysis.accurracy < 100) ? Colors.amber : Colors.green,
+      color: cardColor,
       child: Padding(padding: const EdgeInsets.all(20), 
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,7 +51,7 @@ class StatisticCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text("Practise mode", style: bold,),
-                  Text(_practiceEngine.mode.name),
+                  Text(practisModeNames[_practiceEngine.mode]!),
                 ],
               )),
             Flexible(flex: 1, fit: FlexFit.tight, child:

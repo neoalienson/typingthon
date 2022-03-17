@@ -34,6 +34,9 @@ class Analysis {
   var _correct = 0;
   var _typed = 0;
   var _start = DateTime(0);
+  DateTime get start {
+    return _start;
+  }
   final _lowerCase = RegExp(r'[a-z]');
   final Layout layout;
   final _keyDuration = <String, Map<String, List<int>>>{};

@@ -26,13 +26,17 @@ class AppMenu extends StatelessWidget {
     _on5minTest = on5minTest,
     super(key: key);
 
+  final d = const BoxDecoration(color: Colors.blue,);
+
+  Widget _buildDrawerHeader(String text) {
+    return SizedBox(height: 60, child: DrawerHeader(child: Text(text), decoration: d,),);
+  }
+
   @override
   Widget build(BuildContext context) {
-  var items = <Widget>[];
-    var d = const BoxDecoration(color: Colors.blue,);
+    var items = <Widget>[];
 
-    items.add(DrawerHeader(child: const Text('Layout'), decoration: d,),);
-
+    items.add(_buildDrawerHeader("Layout"));
 
     for (var k in layouts.keys) {
       items.add(
@@ -49,26 +53,41 @@ class AppMenu extends StatelessWidget {
       );
     }
 
-    items.add(DrawerHeader(child: const Text('Practise'), decoration: d,),);
+    items.add(_buildDrawerHeader("Practise"));
 
-    for (var k in practiseModes.keys) {
+    for (var k in PracticeMode.values) {
+      if (k == PracticeMode.minutes5 || !practisModeNames.containsKey(k)) {
+        continue;
+      }
       items.add(
         ListTile(
-          title: Text(k),
+          title: Text(practisModeNames[k]!),
           onTap: () {
             if (_hambgerMenuMode) {
               Navigator.pop(context);
             }
-            if (practiseModes[k] == PracticeMode.minutes5) {
-              _on5minTest();
-            }
           },
-          selected: _currentPracticeMode == practiseModes[k],
+          selected: _currentPracticeMode == k,
         )
       );
     }
 
-    items.add(DrawerHeader(child: const Text('Settings'), decoration: d,),);
+    items.add(_buildDrawerHeader("Benchmark"));
+
+    items.add(
+      ListTile(
+        title: Text(practisModeNames[PracticeMode.minutes5]!),
+        onTap: () {
+          if (_hambgerMenuMode) {
+            Navigator.pop(context);
+          }
+            _on5minTest();
+          },
+        selected: _currentPracticeMode == PracticeMode.minutes5,
+      )
+    );
+
+    items.add(_buildDrawerHeader("Settings"));
 
     return ListView(
           padding: EdgeInsets.zero,
