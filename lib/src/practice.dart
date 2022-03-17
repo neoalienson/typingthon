@@ -22,11 +22,23 @@ var practiseModes = {
   "5 minutes" : PracticeMode.minutes5,
 };
 
-class PracticeGenerator {
+class PracticeEngine {
   var _words = <String>[];
+  bool _practiceEnded = false;
+  bool get practiceEnded {
+    return _practiceEnded;
+  }
   var _text = "";
   String get text {
     return _text;
+  }
+  PracticeMode _mode = PracticeMode.slowKeys;
+  PracticeMode get mode {
+    return _mode;
+  }
+
+  void setMode(PracticeMode mode) {
+    _mode = mode;
   }
 
 

@@ -6,19 +6,25 @@ import 'package:typingthon/src/practice.dart';
 import 'detailed_analysis_page.dart';
 
 class AppMenu extends StatelessWidget {
-  final bool hambgerMenuMode;
-  final Layout curreatLayout;
-  final PracticeMode currentPracticeMode;
-  final Analysis analysis;
-  final Function on5minTest;
+  final bool _hambgerMenuMode;
+  final Layout _curreatLayout;
+  final PracticeMode _currentPracticeMode;
+  final Analysis _analysis;
+  final Function _on5minTest;
 
   const AppMenu({Key? key,
-    required this.hambgerMenuMode,
-    required this.curreatLayout,
-    required this.currentPracticeMode,
-    required this.analysis,
-    required this.on5minTest
-  }) : super(key: key);
+    required bool hambgerMenuMode,
+    required Layout curreatLayout,
+    required PracticeMode currentPracticeMode,
+    required Analysis analysis,
+    required Function on5minTest
+  }) : 
+    _hambgerMenuMode = hambgerMenuMode,
+    _curreatLayout = curreatLayout,
+    _currentPracticeMode = currentPracticeMode,
+    _analysis = analysis,
+    _on5minTest = on5minTest,
+    super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +41,10 @@ class AppMenu extends StatelessWidget {
           onTap: () {
             Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => DetailedAnalysisPage(analysis: analysis,)),
+                MaterialPageRoute(builder: (context) => DetailedAnalysisPage(analysis: _analysis,)),
                 );
           },
-          selected: layouts[k] == curreatLayout,
+          selected: layouts[k] == _curreatLayout,
         )
       );
     }
@@ -50,14 +56,14 @@ class AppMenu extends StatelessWidget {
         ListTile(
           title: Text(k),
           onTap: () {
-            if (hambgerMenuMode) {
+            if (_hambgerMenuMode) {
               Navigator.pop(context);
             }
             if (practiseModes[k] == PracticeMode.minutes5) {
-              on5minTest();
+              _on5minTest();
             }
           },
-          selected: currentPracticeMode == practiseModes[k],
+          selected: _currentPracticeMode == practiseModes[k],
         )
       );
     }

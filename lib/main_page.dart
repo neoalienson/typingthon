@@ -29,10 +29,10 @@ class _MainPageState extends State<MainPage> {
   var _cursor = 0;
 
   Timer? _updateTimer;
-  var _practiceMode = PracticeMode.slowKeys;
   var _enterPressed = false;
-  final _practice = PracticeGenerator();
-  final _textStyleTyping = GoogleFonts.robotoMono(fontSize: 24);
+  final _practice = PracticeEngine();
+  final _textStyleTyping = GoogleFonts.robotoMono(
+    fontSize: 24);
   final _textStyleInfo = const TextStyle(
     fontSize: 12,
     fontStyle: FontStyle.italic,
@@ -100,7 +100,7 @@ class _MainPageState extends State<MainPage> {
     _loadData();
 
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (_practiceMode == PracticeMode.minutes5 && _analysis.elaspedDuration.inMinutes >= 5) {
+      if (_practice.mode == PracticeMode.minutes5 && _analysis.elaspedDuration.inMinutes >= 5) {
         _updateTimer!.cancel();
       }
       setState(() {
@@ -115,7 +115,7 @@ class _MainPageState extends State<MainPage> {
     }
 
     if (event.logicalKey == LogicalKeyboardKey.backspace) {
-      _updateTextScrolls();
+      _updateTextScrolls(context);
       return _onBackspace();
     }
 
@@ -131,16 +131,16 @@ class _MainPageState extends State<MainPage> {
     String ch = (event.character == null) ? "\n" : event.character!;
 
     _onKeypressed(ch);
-    _updateTextScrolls();
+    _updateTextScrolls(context);
 
     return KeyEventResult.ignored;
   }
 
-  void _updateTextScrolls() {
-    _textScrollController.animateTo((_typed.length ~/ 70).toDouble() * 24,
-      curve: Curves.ease, duration: const Duration(milliseconds: 200));
+  void _updateTextScrolls(BuildContext context) {
     if (_typedScrollController.hasClients) {
       _typedScrollController.animateTo(_typedScrollController.position.maxScrollExtent,
+        curve: Curves.ease, duration: const Duration(milliseconds: 200));
+      _textScrollController.animateTo(_typedScrollController.position.maxScrollExtent,
         curve: Curves.ease, duration: const Duration(milliseconds: 200));
     }
   }
@@ -165,7 +165,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _on5minsTest() {
-    _practiceMode = PracticeMode.minutes5;
+    _practice.setMode(PracticeMode.minutes5);
   }
 
   @override
@@ -177,7 +177,7 @@ class _MainPageState extends State<MainPage> {
     final appMenu = AppMenu(
       hambgerMenuMode: (screenWidth < breakpoint1),
       curreatLayout: layout, 
-      currentPracticeMode: _practiceMode, 
+      currentPracticeMode: _practice.mode, 
       analysis: _analysis,
       on5minTest: _on5minsTest,
       );
@@ -185,7 +185,7 @@ class _MainPageState extends State<MainPage> {
 
     Widget w = Column(
       children: [
-        StatisticCard(analysis: _analysis),
+        StatisticCard(analysis: _analysis, practiceEngine: _practice,),
         SizedBox(height: 300, child: 
           Card(child:Padding(
             padding: const EdgeInsets.all(20), 
@@ -193,8 +193,11 @@ class _MainPageState extends State<MainPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 200, child: 
-                SingleChildScrollView(child: 
-                  Text(_text, style: _textStyleTyping,),
+                SingleChildScrollView(child:
+                  Text(_text,
+                    style: _textStyleTyping,
+                    overflow: TextOverflow.fade,
+                  ),
                   controller: _textScrollController,
                 ),),
                 const SizedBox(height: 10,),

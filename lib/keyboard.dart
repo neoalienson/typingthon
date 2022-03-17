@@ -3,47 +3,58 @@ import 'package:flutter/material.dart';
 
 
 class Keyboard extends StatelessWidget  {
-  final keySize = 48.0;
-  final cards = <String, Card>{};
-  final Map<String, int> map;
-  final Map<String, int>? topRight;
-  final String? topRightFormat;
-  final Map<String, int>? lowerRight;
-  final String? lowerRightFormat;
-  final int max;
-  final Color colorMultipler;
-  final bool colorInverse;
-  final Color colorBase;
-  final String title;
-  final subStyle = const TextStyle(fontSize: 8);
+  final _keyCardSize = 48.0;
+  final _cards = <String, Card>{};
+  final Map<String, int> _map;
+  final Map<String, int>? _topRight;
+  final String? _topRightFormat;
+  final Map<String, int>? _lowerRight;
+  final String? _lowerRightFormat;
+  final int _max;
+  final Color _colorMultipler;
+  final bool _colorInverse;
+  final Color _colorBase;
+  final String _title;
+  final _subTextStyle = const TextStyle(fontSize: 8);
 
   Keyboard({Key? key,
-    required this.title,
-    required this.map,
-    required this.max,
-    required this.colorMultipler,
-    this.lowerRight,
-    this.lowerRightFormat,
-    this.topRight,
-    this.topRightFormat,
-    this.colorInverse = false,
-    this.colorBase = const Color.fromARGB(0, 0, 0, 0)
-    }) : super(key: key);
+    required String title,
+    required Map<String, int> map,
+    required int max,
+    required Color colorMultipler,
+    Map<String, int>? lowerRight,
+    String? lowerRightFormat,
+    Map<String, int>? topRight,
+    String? topRightFormat,
+    bool colorInverse = false,
+    Color colorBase = const Color.fromARGB(0, 0, 0, 0)
+  }) : 
+    _title = title,
+    _map = map,
+    _max = max,
+    _colorMultipler = colorMultipler,
+    _topRight = topRight,
+    _topRightFormat = topRightFormat,
+    _lowerRight = lowerRight,
+    _lowerRightFormat = lowerRightFormat,
+    _colorBase = colorBase,
+    _colorInverse = colorInverse,
+    super(key: key);
 
   Widget _keyCard(String text, [int? lowerRight, int? topRight]) {
     String lr = "", tr = "";
 
     if (lowerRight != null) {
-      lr = (lowerRightFormat == null) ? lowerRight.toString() 
-        : lowerRightFormat!.replaceAll("%d", lowerRight.toString());
+      lr = (_lowerRightFormat == null) ? lowerRight.toString() 
+        : _lowerRightFormat!.replaceAll("%d", lowerRight.toString());
     }
 
     if (topRight != null) {
-      tr = (topRightFormat == null) ? topRight.toString() 
-        : topRightFormat!.replaceAll("%d", topRight.toString());
+      tr = (_topRightFormat == null) ? topRight.toString() 
+        : _topRightFormat!.replaceAll("%d", topRight.toString());
     }
 
-    var normalisedColor = colorNormalise(map[text]!, colorInverse);
+    var normalisedColor = colorNormalise(_map[text]!, _colorInverse);
       
     Card c = Card(
       child: Stack(children: [
@@ -52,37 +63,37 @@ class Keyboard extends StatelessWidget  {
             <Widget>[] : <Widget>[
               Align(
                 alignment: const FractionalOffset(0.95, 0.2),
-                child: Text(tr, style: subStyle,)
+                child: Text(tr, style: _subTextStyle,)
               ),
               Align(
                 alignment: const FractionalOffset(0.95, 0.98), 
-                child: Text(lr, style: subStyle,)
+                child: Text(lr, style: _subTextStyle,)
               ),              
             ],
         ]),
       color: normalisedColor, 
       );
-    cards[text] = c;    
+    _cards[text] = c;    
     return SizedBox.square(
           child: c,
-          dimension: keySize,);
+          dimension: _keyCardSize,);
   }
 
   Color colorNormalise(int v, bool inverse) {
     var normalised = [
-      (v / max) * (255 - colorBase.red), 
-      (v / max) * (255 - colorBase.green),
-      (v / max) * (255 - colorBase.blue),
+      (v / _max) * (255 - _colorBase.red), 
+      (v / _max) * (255 - _colorBase.green),
+      (v / _max) * (255 - _colorBase.blue),
       ];
 
     var adjusted = (inverse) ? [
-      255 - (255 - colorMultipler.red) * normalised[0] ~/ 255,
-      255 - (255 - colorMultipler.green) *normalised[1] ~/ 255,
-      255 - (255 - colorMultipler.blue) * normalised[2] ~/ 255,
+      255 - (255 - _colorMultipler.red) * normalised[0] ~/ 255,
+      255 - (255 - _colorMultipler.green) *normalised[1] ~/ 255,
+      255 - (255 - _colorMultipler.blue) * normalised[2] ~/ 255,
     ] : [
-      colorMultipler.red * normalised[0] ~/ 255 + colorBase.red,
-      colorMultipler.green * normalised[1] ~/ 255 + colorBase.green,
-      colorMultipler.blue * normalised[2] ~/ 255 + colorBase.blue,
+      _colorMultipler.red * normalised[0] ~/ 255 + _colorBase.red,
+      _colorMultipler.green * normalised[1] ~/ 255 + _colorBase.green,
+      _colorMultipler.blue * normalised[2] ~/ 255 + _colorBase.blue,
     ];
 
     return 
@@ -95,7 +106,7 @@ class Keyboard extends StatelessWidget  {
   Widget build(BuildContext context) {
     final w = <Widget>[];
 
-    w.add(Text(title, style: const TextStyle(fontWeight: FontWeight.bold),));
+    w.add(Text(_title, style: const TextStyle(fontWeight: FontWeight.bold),));
     for (var row in layout.rows.values) {
       final r = <Widget>[];
       r.add(const Spacer());
@@ -122,15 +133,15 @@ class Keyboard extends StatelessWidget  {
 
   void _keyCardSetup(String k, List<Widget> r) {
     var lrHasCount = false, trHasCount = false;
-    if (lowerRight?[k] != null) {
+    if (_lowerRight?[k] != null) {
       lrHasCount = true;
     }
-    if (topRight?[k] != null) {
+    if (_topRight?[k] != null) {
       trHasCount = true;
     } 
     r.add(_keyCard(k,
-      (lrHasCount) ? lowerRight![k] :null, 
-      (trHasCount) ? topRight![k] : null
+      (lrHasCount) ? _lowerRight![k] :null, 
+      (trHasCount) ? _topRight![k] : null
       ));
   }
 }
