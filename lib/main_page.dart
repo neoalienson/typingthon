@@ -67,14 +67,8 @@ class _MainPageState extends State<MainPage> {
       return KeyEventResult.ignored;
     }
 
-    var expected = _text[_cursor];
-    if (expected == "\r") {
-      expected = "\n";
-    }
-    // change non-breaking space ASCII 160 to space
-    if (expected.codeUnitAt(0) == 160) {
-      expected = " ";
-    }
+    // expected must not be changed
+    final expected = _text[_cursor];
 
     setState(() {
       _analysis.hit(typed, expected);
@@ -82,7 +76,7 @@ class _MainPageState extends State<MainPage> {
       _typed += typed;
     });
 
-    return KeyEventResult.ignored;
+     return KeyEventResult.ignored;
   }
 
   KeyEventResult _onF5() {

@@ -103,6 +103,18 @@ void main() {
     expect(a.typed, 7);
     expect(a.trickyKeys(5), ["ab", "aa"]);
   });
+
+  test('a  a<', () {
+    var a = Analysis(layout);
+    a.hit("a", "a", t(0));
+    a.hit(" ", " ", t(1));
+    a.hit(" ", "a", t(1));
+    a.hit(" ", "a", t(2));
+    expect(a.accurracy, 50);
+    a.remove(false);
+    expect(a.accurracy, 66);
+  });
+
   test('a aa<a ab', () {
     var a = Analysis(layout);
     a.hit("a", "a", t(0));

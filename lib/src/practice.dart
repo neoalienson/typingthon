@@ -83,10 +83,20 @@ class PracticeEngine {
     var texts = <String>[];
     for (var element in elements) {
       final html = parse(element.text);
-      texts.add(html.documentElement!.text.replaceAll(RegExp(r'(\n){2,}'), "\n").trim()
-        .replaceAll('“', '"').replaceAll('”', '"').replaceAll("’", "'").replaceAll("—", " - "));
+      // change non-breaking space ASCII 160 to space
+      var text = html.documentElement!.text.replaceAll(RegExp(r'(\n){2,}'), "\n").trim()
+        .replaceAll('“', '"').replaceAll('”', '"').replaceAll("’", "'").replaceAll("—", " - ")
+        .replaceAll("‘", "'")
+        .replaceAll("\r", "\n").replaceAll(String.fromCharCode(160), " ").replaceAll("…", "...");
+      final lines = text.split("\n");
+      text = "";
+      for (var line in lines) {
+        text += line.trim();
+        text += "\n";
+      } 
+      texts.add(text);
     }
-    return texts;
+     return texts;
   }
 
   List<String> _buildHomeRow(PracticeMode strategy) {
