@@ -44,6 +44,7 @@ class _MainPageState extends State<MainPage> {
   void _reset() {
     _typed = "";
     _cursor = 0;
+    _textScrollController.jumpTo(0);
   }
 
   KeyEventResult _onBackspace() {
@@ -69,7 +70,11 @@ class _MainPageState extends State<MainPage> {
     var expected = _text[_cursor];
     if (expected == "\r") {
       expected = "\n";
-    } 
+    }
+    // change non-breaking space ASCII 160 to space
+    if (expected.codeUnitAt(0) == 160) {
+      expected = " ";
+    }
 
     setState(() {
       _analysis.hit(typed, expected);
@@ -126,7 +131,7 @@ class _MainPageState extends State<MainPage> {
     }
 
     if (event.logicalKey == LogicalKeyboardKey.backspace) {
-      _updateTextScrolls(context);
+      _updateTextScrolls();
       return _onBackspace();
     }
 
@@ -140,12 +145,12 @@ class _MainPageState extends State<MainPage> {
     String ch = (event.character == null) ? "\n" : event.character!;
 
     _onKeypressed(ch);
-    _updateTextScrolls(context);
+    _updateTextScrolls();
 
     return KeyEventResult.ignored;
   }
 
-  void _updateTextScrolls(BuildContext context) {
+  void _updateTextScrolls() {
     if (_typedScrollController.hasClients) {
       _typedScrollController.animateTo(_typedScrollController.position.maxScrollExtent,
         curve: Curves.ease, duration: const Duration(milliseconds: 200));

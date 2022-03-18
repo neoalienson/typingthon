@@ -20,4 +20,5 @@ var records = {
   DateTime(2020, 3, 14) : 33,
   DateTime(2020, 3, 15) : 31,
   DateTime(2020, 3, 17) : 31,
+  DateTime(2020, 3, 18) : 33,
 };
