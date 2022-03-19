@@ -12,7 +12,7 @@ void main() {
   test('Safety', () {
     var practise = PracticeEngine();
     expect(practise.buildPreferred([]), []);
-    expect(practise.build(PracticeMode.singleLeftHome), []);
+    expect(practise.build(PracticeModes.singleLeftHome), []);
   });
 
   test("Load content", () async {

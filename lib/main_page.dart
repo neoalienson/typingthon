@@ -4,7 +4,7 @@ import 'dart:math' show min;
 import 'dart:developer' show log;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
+import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey;
 import 'package:typingthon/app_menu.dart';
 import 'package:typingthon/statistic_card.dart';
 import 'package:typingthon/test_state.dart';
@@ -85,9 +85,6 @@ class _MainPageState extends State<MainPage> {
 
   void _addTimer() {
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (_practice.mode == PracticeMode.minutes5 && _analysis.elaspedDuration.inMinutes >= 5) {
-        _updateTimer!.cancel();
-      }
       setState(() {
       });
     });
@@ -104,12 +101,10 @@ class _MainPageState extends State<MainPage> {
     }
 
     // practice was started and practice timer is ended
-    if (_analysis.start.year != 0 && !_practice.running) {
+    if (!_practice.isRunning && _practice.hasKeyTyped) {
       return KeyEventResult.ignored;
     }
-    if (!_practice.running) {
-      _practice.start();
-    }
+    _practice.hasKeyTyped = true;
 
     if (event.logicalKey == LogicalKeyboardKey.backspace) {
       _updateTextScrolls();
@@ -148,8 +143,8 @@ class _MainPageState extends State<MainPage> {
   void _loadData() async {
     // await _practice.loadWords(rootBundle);
     // text = _practice.build(PracticeMode.random).join(" ")
-    // text = await _practice.loadXmlFromUrl("https://www.technologyreview.com/feed/");
-    var texts = await _practice.loadXmlFromFile(rootBundle, "assets/texts/1.txt"); 
+    var texts = await _practice.loadXmlFromUrl("https://www.technologyreview.com/feed/");
+    // var texts = await _practice.loadXmlFromFile(rootBundle, "assets/texts/1.txt"); 
     texts.shuffle();
 
     setState(() {
@@ -157,11 +152,14 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  void _on5minsTest() {
-    _practice.mode = PracticeMode.minutes5;
+  void _onMinsTest(PracticeMode mode) {
+    _practice.end();
     _reset();
     _loadData();
     _analysis = Analysis(layout);
+    _analysis.testLength = mode.duration;
+    _practice.mode = mode;
+    _practice.start();
   }
 
   @override
@@ -175,7 +173,7 @@ class _MainPageState extends State<MainPage> {
       curreatLayout: layout, 
       currentPracticeMode: _practice.mode, 
       analysis: _analysis,
-      on5minTest: _on5minsTest,
+      onMinTest: _onMinsTest,
       );
     const subStyle = TextStyle(fontSize: 12);
     const _textStyleInfo = TextStyle(

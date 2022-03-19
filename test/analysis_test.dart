@@ -4,7 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:typingthon/src/layout.dart';
 
 DateTime t(int s) {
-  return DateTime(0).add(const Duration(seconds: 1) * s);
+  return DateTime(0).add(Duration(seconds: 1 * s));
 }
 void main() {
   test('single correct', () {
@@ -172,10 +172,10 @@ void main() {
     withClock(
       Clock.fixed(t(5)),
       () {
-        expect(a.wpmIn10min, 12);
-        expect(a.wpmIn1min, 12);
-        expect(a.wpmIn10s, 12);
-        expect(a.wpmOverall, 12);
+        expect(a.wpmIn10min, 15);
+        expect(a.wpmIn1min, 15);
+        expect(a.wpmIn10s, 15);
+        expect(a.wpmOverall, 15);
       }
       );
     withClock(

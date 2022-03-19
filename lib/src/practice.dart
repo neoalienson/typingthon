@@ -9,44 +9,64 @@ import 'package:xml/xml.dart' as xml;
 import 'package:html/parser.dart' show parse;
 import 'layout.dart';
 
-enum PracticeMode {
+enum PracticeModes {
   random,
   singleLeftHome,
   singleRightHome,
   slowKeys,
   minutes5,
+  minute1,
 }
 
-const practisModeNames = {
-  PracticeMode.minutes5 : "5 minutes",
-  PracticeMode.random : "Random",
-  PracticeMode.slowKeys : "Slow Keys",
+var practiceModes = {
+  PracticeModes.minute1  : PracticeMode("1 minute", true, const Duration(minutes: 1)),
+  PracticeModes.minutes5 : PracticeMode("5 minutes", true, const Duration(minutes: 5)),
+  PracticeModes.random   : PracticeMode("Random", false, const Duration(minutes: 0)),
+  PracticeModes.slowKeys : PracticeMode("Slow Keys", false, const Duration(minutes: 0)),
 };
+
+class PracticeMode {
+  String name;
+  bool isTimed;
+  Duration duration;
+  
+  PracticeMode(
+    this.name,
+    this.isTimed,
+    this.duration);
+}
 
 class PracticeEngine {
   var _words = <String>[];
-  bool _running = false;
+  bool _isRunning = false;
+  bool get isRunning => _isRunning;
+  bool _hasKeyTyped = false;
+  bool get hasKeyTyped => _hasKeyTyped;
 
-  bool get running => _running;
+  set hasKeyTyped(bool typed) {
+    if (mode.isTimed && !hasKeyTyped) {
+      _testTimer = Timer(mode.duration, () {
+         _isRunning = false;
+      });
+    }
+    _hasKeyTyped = typed;
+  }
 
   Timer? _testTimer;
   var _text = "";
   String get text {
     return _text;
   }
-  PracticeMode mode = PracticeMode.slowKeys;
+  PracticeMode mode = practiceModes[PracticeModes.slowKeys]!;
 
   void start() {
-    _running = true;
-    if (mode == PracticeMode.minutes5) {
-      _testTimer = Timer(const Duration(minutes: 5), () {
-         _running = false;
-      });
-    }
+    _isRunning = true;
+    _hasKeyTyped = false;
   }
 
   void end() {
-    _running = false;
+    _isRunning = false;
+    _testTimer?.cancel();
   }
 
   void dispose() {
@@ -99,7 +119,7 @@ class PracticeEngine {
      return texts;
   }
 
-  List<String> _buildHomeRow(PracticeMode strategy) {
+  List<String> _buildHomeRow(PracticeModes strategy) {
     List<String> selected = [];
     final keys = layout.keys;
     final homeRow = layout.homeRow;
@@ -132,11 +152,11 @@ class PracticeEngine {
         }
       } // for ch in word.runes
 
-      if (strategy == PracticeMode.singleLeftHome && leftTop == 0 && leftBottom == 0 && leftHome == 1 ) {
+      if (strategy == PracticeModes.singleLeftHome && leftTop == 0 && leftBottom == 0 && leftHome == 1 ) {
         selected.add(word);
       }
 
-      if (strategy == PracticeMode.singleRightHome && rightTop == 0 && rightBottom == 0 && rightHome == 1 ) {
+      if (strategy == PracticeModes.singleRightHome && rightTop == 0 && rightBottom == 0 && rightHome == 1 ) {
         selected.add(word);
       }
 
@@ -164,14 +184,14 @@ class PracticeEngine {
     return selected;
   }
 
-  List<String> build([PracticeMode strategy = PracticeMode.random]) {
+  List<String> build([PracticeModes strategy = PracticeModes.random]) {
     switch (strategy) {
-      case PracticeMode.singleLeftHome:
-      case PracticeMode.singleRightHome:
+      case PracticeModes.singleLeftHome:
+      case PracticeModes.singleRightHome:
         return _buildHomeRow(strategy);
-      case PracticeMode.slowKeys:
+      case PracticeModes.slowKeys:
         throw UnimplementedError("Use buildPreferred instead");
-      case PracticeMode.random:
+      case PracticeModes.random:
         var r = _words.toList(growable: false);
         r.shuffle();
         return r.sublist(0, min(30, _words.length));

@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Chrome (requires cors disable to access rss feed)",
+            "name": "Chrome (requires https://pub.dev/packages/flutter_cors)",
             "request": "launch",
             "type": "dart",
             "args": [
                 "-d",
                 "chrome",
-            ]
+            ],
         },
         {
             "name": "Windows",

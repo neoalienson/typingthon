@@ -33,6 +33,7 @@ class Analysis {
   final _hits = <Hit>[];
   var _correct = 0;
   var _typed = 0;
+  var testLength = const Duration();
   var _start = DateTime(0);
   DateTime get start {
     return _start;
@@ -160,7 +161,7 @@ class Analysis {
     final expected = expectedRaw.toLowerCase();
     final typed = typedRaw.toLowerCase();
 
-    if (_hits.isEmpty) {
+    if (_start == DateTime(0)) {
       _start = now;
     }
 
@@ -227,37 +228,26 @@ class Analysis {
     _typed = 0;
   }
 
-  int get elasped {
-    if (_hits.isEmpty) {
-      return 0;
+  Duration get elasped {
+    if (testLength.inSeconds == 0
+      || testLength > clock.now().difference(_start)) {
+      return (_start == DateTime(0)) ? const Duration(seconds: 0) : clock.now().difference(_start);
     }
-    return clock.now().difference(_hits.first.on).inSeconds;
-  }
-
-  Duration get elaspedDuration {
-    if (_hits.isEmpty) {
-      return const Duration();
-    }
-    return clock.now().difference(_hits.first.on);
+    return testLength;
   }
 
   int _wpm(Duration d) {
     int h = 0;
-    var now = clock.now();
-    Duration dur = now.difference(_start);
-    if (d < dur) {
-      dur = d;
-    }
     for (var hit in _hits) {
-      if (hit.correct && now.difference(hit.on) <= dur) {
+      if (hit.correct && start.add(elasped).difference(hit.on) <= d) {
         h++;
       }
     }
 
-    if (dur.inSeconds < 5) {
+    if (elasped.inSeconds < 4) {
       return 0;
     }
-    return h * 60 ~/ dur.inSeconds ~/ 5;
+    return h * 60 ~/ ((d > elasped) ? elasped : d).inSeconds ~/ 5;
   }
 
   int get wpmIn10s {

@@ -20,7 +20,7 @@ class StatisticCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const bold = TextStyle(fontWeight: FontWeight.bold);
     var cardColor = Colors.white;
-    if (_practiceEngine.running) {
+    if (_practiceEngine.isRunning) {
       cardColor = (_analysis.accurracy < 100) ? Colors.amber : Colors.green;
     }
 
@@ -44,14 +44,14 @@ class StatisticCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text("Elasped", style: bold),
-                Text(_analysis.elaspedDuration.toString().split('.').first.padLeft(8, "0")),
+                Text(_analysis.elasped.toString().split('.').first.padLeft(8, "0")),
               ],)),
             Flexible(flex: 1, fit: FlexFit.tight, child: 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text("Practise mode", style: bold,),
-                  Text(practisModeNames[_practiceEngine.mode]!),
+                  Text(_practiceEngine.mode.name),
                 ],
               )),
             Flexible(flex: 1, fit: FlexFit.tight, child:

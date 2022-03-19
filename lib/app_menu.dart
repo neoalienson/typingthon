@@ -10,20 +10,20 @@ class AppMenu extends StatelessWidget {
   final Layout _curreatLayout;
   final PracticeMode _currentPracticeMode;
   final Analysis _analysis;
-  final Function _on5minTest;
+  final Function _onMinTest;
 
   const AppMenu({Key? key,
     required bool hambgerMenuMode,
     required Layout curreatLayout,
     required PracticeMode currentPracticeMode,
     required Analysis analysis,
-    required Function on5minTest
+    required Function onMinTest,
   }) : 
     _hambgerMenuMode = hambgerMenuMode,
     _curreatLayout = curreatLayout,
     _currentPracticeMode = currentPracticeMode,
     _analysis = analysis,
-    _on5minTest = on5minTest,
+    _onMinTest = onMinTest,
     super(key: key);
 
   final d = const BoxDecoration(color: Colors.blue,);
@@ -55,37 +55,42 @@ class AppMenu extends StatelessWidget {
 
     items.add(_buildDrawerHeader("Practise"));
 
-    for (var k in PracticeMode.values) {
-      if (k == PracticeMode.minutes5 || !practisModeNames.containsKey(k)) {
+    for (var v in practiceModes.values) {
+      if (v.isTimed) {
         continue;
       }
       items.add(
         ListTile(
-          title: Text(practisModeNames[k]!),
+          title: Text(v.name),
           onTap: () {
             if (_hambgerMenuMode) {
               Navigator.pop(context);
             }
           },
-          selected: _currentPracticeMode == k,
+          selected: _currentPracticeMode == v,
         )
       );
     }
 
     items.add(_buildDrawerHeader("Benchmark"));
 
-    items.add(
-      ListTile(
-        title: Text(practisModeNames[PracticeMode.minutes5]!),
-        onTap: () {
-          if (_hambgerMenuMode) {
-            Navigator.pop(context);
-          }
-            _on5minTest();
+    for (var v in practiceModes.values) {
+      if (!v.isTimed) {
+        continue;
+      }
+      items.add(
+        ListTile(
+          title: Text(v.name),
+          onTap: () {
+            if (_hambgerMenuMode) {
+              Navigator.pop(context);
+            }
+            _onMinTest(v);
           },
-        selected: _currentPracticeMode == PracticeMode.minutes5,
-      )
-    );
+          selected: _currentPracticeMode == v,
+        )
+      );
+    }
 
     items.add(_buildDrawerHeader("Settings"));
 
