@@ -13,6 +13,7 @@ class TestState {
   final TextStyle _textStyleTyped;
   final TextStyle _textStyleSpace;
 
+  var _cursor = 0;
   String _text = "";
   String get text {
     return _text;
@@ -25,10 +26,33 @@ class TestState {
   String get typed {
     return _typed;
   }
-  set typed(String t) {
+
+  void typeCharacter(String ch) {
+    if (hasTypedAll) {
+      return;
+    }
+    _cursor++;
+    _updateTyped(_typed + ch);
+  }
+
+  void typeBackspace() {
+    if (_cursor == 0) {
+      _updateTyped("");
+      return;
+    }
+    _cursor--;
+    _updateTyped(typed.substring(0, typed.length - 1));
+  }
+
+  void clearTyped() {
+    _updateTyped("");
+  }
+
+  void _updateTyped(String t) {
     _typed = t;
     if (t.isEmpty) {
       _display = const TextSpan();
+      _cursor = 0;
       return;
     }
     var s = <TextSpan>[];
@@ -54,5 +78,17 @@ class TestState {
 
   String get progress {
     return "${typed.length.toString()}/${text.length.toString()}";
+  }
+
+  bool get isLastCorrect {
+    return text[_cursor - 1] == typed[_cursor - 1];
+  }
+
+  bool get hasTypedAll {
+    return _cursor >= text.length;
+  }
+
+  String get expected {
+    return text[_cursor];
   }
 }

@@ -28,22 +28,13 @@ class _MainPageState extends State<MainPage> {
   final test = TestState(baseStyle: _textStyleNormal);
   late FocusNode _focusNode;
   var _analysis = Analysis(layout);
-  var _cursor = 0;
-
   Timer? _updateTimer;
-  var _enterPressed = false;
+  var _showInfo = false;
   final _practice = PracticeEngine();
-  final _textStyleInfo = const TextStyle(
-    fontSize: 12,
-    fontStyle: FontStyle.italic,
-  );
-
   final _textScrollController = ScrollController();
   final _typedScrollController = ScrollController();
-
   void _reset() {
-    test.typed = "";
-    _cursor = 0;
+    test.clearTyped();
     _textScrollController.jumpTo(0);
   }
 
@@ -53,9 +44,8 @@ class _MainPageState extends State<MainPage> {
     }
 
     setState(() {
-      _analysis.remove(test.text[_cursor - 1] == test.typed[_cursor - 1]);
-      _cursor--;
-      test.typed = test.typed.substring(0, test.typed.length - 1);
+      _analysis.remove(test.isLastCorrect);
+      test.typeBackspace();
     });
 
     return KeyEventResult.ignored;
@@ -63,17 +53,11 @@ class _MainPageState extends State<MainPage> {
 
   KeyEventResult _onKeypressed(String ch) {
     assert(ch.length == 1);
-    if ((_cursor >= test.text.length)) {
-      return KeyEventResult.ignored;
-    }
 
     // expected must not be changed
-    final expected = test.text[_cursor];
-
     setState(() {
-      _analysis.hit(ch, expected);
-      _cursor++;
-      test.typed += ch;
+      _analysis.hit(ch, test.expected);
+      test.typeCharacter(ch);
     });
 
      return KeyEventResult.ignored;
@@ -81,7 +65,7 @@ class _MainPageState extends State<MainPage> {
 
   KeyEventResult _onF5() {
     setState(() {
-      _enterPressed = true;
+      _showInfo = true;
       _nextRound(_practice.buildPreferred(_analysis.trickyKeys(5)));
     });
 
@@ -191,7 +175,10 @@ class _MainPageState extends State<MainPage> {
       on5minTest: _on5minsTest,
       );
     const subStyle = TextStyle(fontSize: 12);
-
+    const _textStyleInfo = TextStyle(
+      fontSize: 12,
+      fontStyle: FontStyle.italic,
+    );
     Widget w = Column(
       children: [
         StatisticCard(analysis: _analysis, practiceEngine: _practice,),
@@ -209,8 +196,8 @@ class _MainPageState extends State<MainPage> {
                   controller: _textScrollController,
                 ),),
                 const SizedBox(height: 10,),
-                (_enterPressed) ? const Text("") 
-                  : Text("Once complete, press F5 to generate next word set.", style: _textStyleInfo),
+                (_showInfo) ? const Text("") 
+                  : const Text("Once complete, press F5 to generate next word set.", style: _textStyleInfo),
             ])
 
           ))
@@ -226,7 +213,7 @@ class _MainPageState extends State<MainPage> {
                   Text(test.progress, style: subStyle,)
                   ),
                 (test.typed.isEmpty) ? 
-                Text("Type anyway from screen to begin.", style: _textStyleInfo,):
+                const Text("Type anyway from screen to begin.", style: _textStyleInfo,):
                 Expanded(child: 
                   SingleChildScrollView(child: 
                     Text(test.typed, style: _textStyleNormal),
