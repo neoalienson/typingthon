@@ -5,13 +5,13 @@ class TestState {
   TestState({Key? key, required TextStyle baseStyle}) :
     _textStyleNormal = baseStyle,
     _textStyleUnderline = baseStyle.copyWith(decoration: TextDecoration.underline),
-    _textStyleSpace = baseStyle.copyWith(backgroundColor: const Color.fromARGB(255, 245, 245, 245)),
+    _textStyleWrong = baseStyle.copyWith(backgroundColor: Colors.red),
     _textStyleTyped = baseStyle.copyWith(color: const Color.fromARGB(255, 220, 220, 220));
 
   final TextStyle _textStyleUnderline;
   final TextStyle _textStyleNormal;
   final TextStyle _textStyleTyped;
-  final TextStyle _textStyleSpace;
+  final TextStyle _textStyleWrong;
 
   var _cursor = 0;
   String _text = "";
@@ -56,10 +56,28 @@ class TestState {
       return;
     }
     var s = <TextSpan>[];
-    s.add(TextSpan(text:text.substring(0, typed.length), style: _textStyleTyped));
+    int firstDiff = typed.length;
+    for (var i = 0; i < typed.length; i++) {
+      if (_text[i] == _typed[i]) {
+        continue;
+      }
+      firstDiff = i;
+      break;
+    }
+    s.add(TextSpan(text:text.substring(0, firstDiff), style: _textStyleTyped));
+    if (firstDiff != typed.length) {
+      if (text[typed.length - 1] == "\n") {
+        s.add(TextSpan(text:text.substring(firstDiff, typed.length - 1), style: _textStyleWrong));
+        s.add(TextSpan(text:"¶", style: _textStyleWrong));
+        s.add(const TextSpan(text:"\n"));
+      } else {
+        s.add(TextSpan(text:text.substring(firstDiff, typed.length), style: _textStyleWrong));
+      }
+    }
     if (text[typed.length] == "\n") {
       s.add(TextSpan(text:"¶", style: _textStyleUnderline));
     }
+
     s.add(TextSpan(text:text[typed.length], style: _textStyleUnderline));
     s.add(TextSpan(text:text.substring(typed.length + 1), style: _textStyleNormal));
     _display = TextSpan(text: "", 
