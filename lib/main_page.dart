@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/app_menu.dart';
 import 'package:typingthon/statistic_card.dart';
+import 'package:typingthon/test_state.dart';
 import 'detailed_analysis_page.dart';
 import 'src/layout.dart';
 import 'src/practice.dart';
@@ -22,58 +23,41 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  String _text = "";
-  String _typed = "";
+  static final TextStyle _textStyleNormal = GoogleFonts.robotoMono(
+      fontSize: 24, color: Colors.black);
+  final test = TestState(baseStyle: _textStyleNormal);
   late FocusNode _focusNode;
   var _analysis = Analysis(layout);
-  var _cursor = 0;
-
   Timer? _updateTimer;
-  var _enterPressed = false;
+  var _showInfo = false;
   final _practice = PracticeEngine();
-  final _textStyleTyping = GoogleFonts.robotoMono(
-    fontSize: 24);
-  final _textStyleInfo = const TextStyle(
-    fontSize: 12,
-    fontStyle: FontStyle.italic,
-  );
-
   final _textScrollController = ScrollController();
   final _typedScrollController = ScrollController();
-
   void _reset() {
-    _typed = "";
-    _cursor = 0;
+    test.clearTyped();
     _textScrollController.jumpTo(0);
   }
 
   KeyEventResult _onBackspace() {
-    if (_typed.isEmpty) {
+    if (test.typed.isEmpty) {
       return KeyEventResult.ignored;
     }
 
     setState(() {
-      _analysis.remove(_text[_cursor - 1] == _typed[_cursor - 1]);
-      _cursor--;
-      _typed = _typed.substring(0, _typed.length - 1);
+      _analysis.remove(test.isLastCorrect);
+      test.typeBackspace();
     });
 
     return KeyEventResult.ignored;
   }
 
-  KeyEventResult _onKeypressed(String typed) {
-    assert(typed.length == 1);
-    if ((_cursor >= _text.length)) {
-      return KeyEventResult.ignored;
-    }
+  KeyEventResult _onKeypressed(String ch) {
+    assert(ch.length == 1);
 
     // expected must not be changed
-    final expected = _text[_cursor];
-
     setState(() {
-      _analysis.hit(typed, expected);
-      _cursor++;
-      _typed += typed;
+      _analysis.hit(ch, test.expected);
+      test.typeCharacter(ch);
     });
 
      return KeyEventResult.ignored;
@@ -81,7 +65,7 @@ class _MainPageState extends State<MainPage> {
 
   KeyEventResult _onF5() {
     setState(() {
-      _enterPressed = true;
+      _showInfo = true;
       _nextRound(_practice.buildPreferred(_analysis.trickyKeys(5)));
     });
 
@@ -96,7 +80,10 @@ class _MainPageState extends State<MainPage> {
       onKeyEvent: _onKeyEvent
     );
     _loadData();
+    _addTimer();
+  }
 
+  void _addTimer() {
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_practice.mode == PracticeMode.minutes5 && _analysis.elaspedDuration.inMinutes >= 5) {
         _updateTimer!.cancel();
@@ -129,8 +116,6 @@ class _MainPageState extends State<MainPage> {
       return _onBackspace();
     }
 
-
-
     // ignore other special keys
     if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
       return KeyEventResult.ignored;
@@ -156,7 +141,7 @@ class _MainPageState extends State<MainPage> {
   void _nextRound(List<String> words) {
     words.shuffle();
     words = words.sublist(0, min(30, words.length));
-    _text = words.join(" ");
+    test.text = words.join(" ");
     _reset();
   }
 
@@ -168,7 +153,7 @@ class _MainPageState extends State<MainPage> {
     texts.shuffle();
 
     setState(() {
-      _text = texts.first;
+      test.text = texts.first;
     });
   }
 
@@ -193,27 +178,29 @@ class _MainPageState extends State<MainPage> {
       on5minTest: _on5minsTest,
       );
     const subStyle = TextStyle(fontSize: 12);
-
+    const _textStyleInfo = TextStyle(
+      fontSize: 12,
+      fontStyle: FontStyle.italic,
+    );
     Widget w = Column(
       children: [
         StatisticCard(analysis: _analysis, practiceEngine: _practice,),
-        SizedBox(height: 200, child: 
+        SizedBox(height: 300, child: 
           Card(child:Padding(
             padding: const EdgeInsets.all(20), 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 120, child: 
+                SizedBox(height: 220, child: 
                 SingleChildScrollView(child:
-                  Text(_text,
-                    style: _textStyleTyping,
+                  RichText(text: test.display,
                     overflow: TextOverflow.fade,
                   ),
                   controller: _textScrollController,
                 ),),
                 const SizedBox(height: 10,),
-                (_enterPressed) ? const Text("") 
-                  : Text("Once complete, press F5 to generate next word set.", style: _textStyleInfo),
+                (_showInfo) ? const Text("") 
+                  : const Text("Once complete, press F5 to generate next word set.", style: _textStyleInfo),
             ])
 
           ))
@@ -226,13 +213,13 @@ class _MainPageState extends State<MainPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Align(alignment: Alignment.topRight, child:
-                  Text("${_typed.length.toString()}/${_text.length.toString()}", style: subStyle,)
+                  Text(test.progress, style: subStyle,)
                   ),
-                (_typed.isEmpty) ? 
-                Text("Type anyway from screen to begin.", style: _textStyleInfo,):
+                (test.typed.isEmpty) ? 
+                const Text("Type anyway from screen to begin.", style: _textStyleInfo,):
                 Expanded(child: 
                   SingleChildScrollView(child: 
-                    Text(_typed, style: _textStyleTyping),
+                    Text(test.typed, style: _textStyleNormal),
                     controller: _typedScrollController,
                   ),
                 ),
