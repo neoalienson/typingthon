@@ -51,17 +51,12 @@ class TestState {
   void _updateTyped(String t) {
     _typed = t;
     if (t.isEmpty) {
-      _display = const TextSpan();
+      _display = TextSpan(text: _text, style: _textStyleNormal);
       _cursor = 0;
       return;
     }
     var s = <TextSpan>[];
-    var typeds = text.substring(0, typed.length).split(" ");
-    for (var t in typeds) {
-      s.add(TextSpan(text:t, style: _textStyleTyped));
-      s.add(TextSpan(text:' ', style: _textStyleSpace));
-    }
-    s.removeLast();
+    s.add(TextSpan(text:text.substring(0, typed.length), style: _textStyleTyped));
     if (text[typed.length] == "\n") {
       s.add(TextSpan(text:"¶", style: _textStyleUnderline));
     }

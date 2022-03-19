@@ -80,7 +80,10 @@ class _MainPageState extends State<MainPage> {
       onKeyEvent: _onKeyEvent
     );
     _loadData();
+    _addTimer();
+  }
 
+  void _addTimer() {
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_practice.mode == PracticeMode.minutes5 && _analysis.elaspedDuration.inMinutes >= 5) {
         _updateTimer!.cancel();
