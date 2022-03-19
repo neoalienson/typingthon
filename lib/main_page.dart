@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey, rootBundle;
 import 'package:typingthon/app_menu.dart';
 import 'package:typingthon/statistic_card.dart';
+import 'package:typingthon/test_state.dart';
 import 'detailed_analysis_page.dart';
 import 'src/layout.dart';
 import 'src/practice.dart';
@@ -22,8 +23,9 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  String _text = "";
-  String _typed = "";
+  static final TextStyle _textStyleNormal = GoogleFonts.robotoMono(
+      fontSize: 24, color: Colors.black);
+  final test = TestState(baseStyle: _textStyleNormal);
   late FocusNode _focusNode;
   var _analysis = Analysis(layout);
   var _cursor = 0;
@@ -31,8 +33,6 @@ class _MainPageState extends State<MainPage> {
   Timer? _updateTimer;
   var _enterPressed = false;
   final _practice = PracticeEngine();
-  final _textStyleTyping = GoogleFonts.robotoMono(
-    fontSize: 24);
   final _textStyleInfo = const TextStyle(
     fontSize: 12,
     fontStyle: FontStyle.italic,
@@ -42,38 +42,38 @@ class _MainPageState extends State<MainPage> {
   final _typedScrollController = ScrollController();
 
   void _reset() {
-    _typed = "";
+    test.typed = "";
     _cursor = 0;
     _textScrollController.jumpTo(0);
   }
 
   KeyEventResult _onBackspace() {
-    if (_typed.isEmpty) {
+    if (test.typed.isEmpty) {
       return KeyEventResult.ignored;
     }
 
     setState(() {
-      _analysis.remove(_text[_cursor - 1] == _typed[_cursor - 1]);
+      _analysis.remove(test.text[_cursor - 1] == test.typed[_cursor - 1]);
       _cursor--;
-      _typed = _typed.substring(0, _typed.length - 1);
+      test.typed = test.typed.substring(0, test.typed.length - 1);
     });
 
     return KeyEventResult.ignored;
   }
 
-  KeyEventResult _onKeypressed(String typed) {
-    assert(typed.length == 1);
-    if ((_cursor >= _text.length)) {
+  KeyEventResult _onKeypressed(String ch) {
+    assert(ch.length == 1);
+    if ((_cursor >= test.text.length)) {
       return KeyEventResult.ignored;
     }
 
     // expected must not be changed
-    final expected = _text[_cursor];
+    final expected = test.text[_cursor];
 
     setState(() {
-      _analysis.hit(typed, expected);
+      _analysis.hit(ch, expected);
       _cursor++;
-      _typed += typed;
+      test.typed += ch;
     });
 
      return KeyEventResult.ignored;
@@ -129,8 +129,6 @@ class _MainPageState extends State<MainPage> {
       return _onBackspace();
     }
 
-
-
     // ignore other special keys
     if (event.character == null && event.logicalKey != LogicalKeyboardKey.enter) {
       return KeyEventResult.ignored;
@@ -156,7 +154,7 @@ class _MainPageState extends State<MainPage> {
   void _nextRound(List<String> words) {
     words.shuffle();
     words = words.sublist(0, min(30, words.length));
-    _text = words.join(" ");
+    test.text = words.join(" ");
     _reset();
   }
 
@@ -168,7 +166,7 @@ class _MainPageState extends State<MainPage> {
     texts.shuffle();
 
     setState(() {
-      _text = texts.first;
+      test.text = texts.first;
     });
   }
 
@@ -205,8 +203,7 @@ class _MainPageState extends State<MainPage> {
               children: [
                 SizedBox(height: 120, child: 
                 SingleChildScrollView(child:
-                  Text(_text,
-                    style: _textStyleTyping,
+                  RichText(text: test.display,
                     overflow: TextOverflow.fade,
                   ),
                   controller: _textScrollController,
@@ -226,13 +223,13 @@ class _MainPageState extends State<MainPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Align(alignment: Alignment.topRight, child:
-                  Text("${_typed.length.toString()}/${_text.length.toString()}", style: subStyle,)
+                  Text(test.progress, style: subStyle,)
                   ),
-                (_typed.isEmpty) ? 
+                (test.typed.isEmpty) ? 
                 Text("Type anyway from screen to begin.", style: _textStyleInfo,):
                 Expanded(child: 
                   SingleChildScrollView(child: 
-                    Text(_typed, style: _textStyleTyping),
+                    Text(test.typed, style: _textStyleNormal),
                     controller: _typedScrollController,
                   ),
                 ),
