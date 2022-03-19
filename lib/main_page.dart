@@ -195,13 +195,13 @@ class _MainPageState extends State<MainPage> {
     Widget w = Column(
       children: [
         StatisticCard(analysis: _analysis, practiceEngine: _practice,),
-        SizedBox(height: 200, child: 
+        SizedBox(height: 300, child: 
           Card(child:Padding(
             padding: const EdgeInsets.all(20), 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 120, child: 
+                SizedBox(height: 220, child: 
                 SingleChildScrollView(child:
                   RichText(text: test.display,
                     overflow: TextOverflow.fade,

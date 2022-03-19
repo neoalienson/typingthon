@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 class TestState {
   TestState({Key? key, required TextStyle baseStyle}) :
     _textStyleNormal = baseStyle,
-    _textStyleWrong = baseStyle.copyWith(backgroundColor: Colors.red),
+    _textStyleUnderline = baseStyle.copyWith(decoration: TextDecoration.underline),
+    _textStyleSpace = baseStyle.copyWith(backgroundColor: const Color.fromARGB(255, 245, 245, 245)),
     _textStyleTyped = baseStyle.copyWith(color: const Color.fromARGB(255, 220, 220, 220));
 
-  final TextStyle _textStyleWrong;
+  final TextStyle _textStyleUnderline;
   final TextStyle _textStyleNormal;
   final TextStyle _textStyleTyped;
+  final TextStyle _textStyleSpace;
 
   String _text = "";
   String get text {
@@ -25,9 +27,23 @@ class TestState {
   }
   set typed(String t) {
     _typed = t;
+    if (t.isEmpty) {
+      _display = const TextSpan();
+      return;
+    }
     var s = <TextSpan>[];
-    s.add(TextSpan(text: text.substring(typed.length), style: _textStyleNormal));
-    _display = TextSpan(text: text.substring(0, typed.length), 
+    var typeds = text.substring(0, typed.length).split(" ");
+    for (var t in typeds) {
+      s.add(TextSpan(text:t, style: _textStyleTyped));
+      s.add(TextSpan(text:' ', style: _textStyleSpace));
+    }
+    s.removeLast();
+    if (text[typed.length] == "\n") {
+      s.add(TextSpan(text:"¶", style: _textStyleUnderline));
+    }
+    s.add(TextSpan(text:text[typed.length], style: _textStyleUnderline));
+    s.add(TextSpan(text:text.substring(typed.length + 1), style: _textStyleNormal));
+    _display = TextSpan(text: "", 
       style: _textStyleTyped, 
       children: s);
   }
