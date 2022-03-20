@@ -105,6 +105,7 @@ class _MainPageState extends State<MainPage> {
       return KeyEventResult.ignored;
     }
     _practice.hasKeyTyped = true;
+    _analysis.start();
 
     if (event.logicalKey == LogicalKeyboardKey.backspace) {
       _updateTextScrolls();

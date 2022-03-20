@@ -33,11 +33,9 @@ class Analysis {
   final _hits = <Hit>[];
   var _correct = 0;
   var _typed = 0;
+  var _started = false;
   var testLength = const Duration();
   var _start = DateTime(0);
-  DateTime get start {
-    return _start;
-  }
   final _lowerCase = RegExp(r'[a-z]');
   final Layout layout;
   final _keyDuration = <String, Map<String, List<int>>>{};
@@ -55,10 +53,16 @@ class Analysis {
   static const slowKeyDisplay = 30;
   static const wrongKeyDisplay = 26;
 
-  Analysis(this.layout) {
-    reset();
-    resetHits();
+  void start([DateTime? on]) {
+    var now = (on == null) ? clock.now() : on;
 
+    if (!_started) {
+      _start = now;
+      _started = true;
+    }
+  }
+
+  Analysis(this.layout) {
     for (var ch in layout.keys.keys) {
       totals[ch] = 0;
       wrongs[ch] = 0;
@@ -161,10 +165,6 @@ class Analysis {
     final expected = expectedRaw.toLowerCase();
     final typed = typedRaw.toLowerCase();
 
-    if (_start == DateTime(0)) {
-      _start = now;
-    }
-
     if (totals.containsKey(expected)) {
         totals[expected] = totals[expected]! + 1;
       }
@@ -219,19 +219,10 @@ class Analysis {
     _hits.removeLast();
   }
 
-  void resetHits() {
-    _hits.clear();
-  }
-
-  void reset() {
-    _correct = 0;
-    _typed = 0;
-  }
-
   Duration get elasped {
     if (testLength.inSeconds == 0
       || testLength > clock.now().difference(_start)) {
-      return (_start == DateTime(0)) ? const Duration(seconds: 0) : clock.now().difference(_start);
+      return (_started) ? clock.now().difference(_start) : const Duration(seconds: 0);
     }
     return testLength;
   }
@@ -239,12 +230,12 @@ class Analysis {
   int _wpm(Duration d) {
     int h = 0;
     for (var hit in _hits) {
-      if (hit.correct && start.add(elasped).difference(hit.on) <= d) {
+      if (hit.correct && _start.add(elasped).difference(hit.on) <= d) {
         h++;
       }
     }
 
-    if (elasped.inSeconds < 4) {
+    if (elasped.inSeconds < 5) {
       return 0;
     }
     return h * 60 ~/ ((d > elasped) ? elasped : d).inSeconds ~/ 5;

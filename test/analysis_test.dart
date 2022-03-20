@@ -150,6 +150,7 @@ void main() {
 
   test('wpm should be zero within first 5 second', () {
     var a = Analysis(layout);
+    a.start(t(0));
     a.hit("a", "a", t(0));
     withClock(
       Clock.fixed(t(4)),
@@ -164,6 +165,7 @@ void main() {
 
   test('wpm', () {
     var a = Analysis(layout);
+    a.start(t(0));
     a.hit("a", "a", t(0));
     a.hit("a", "a", t(1));
     a.hit("a", "a", t(2));
@@ -172,10 +174,10 @@ void main() {
     withClock(
       Clock.fixed(t(5)),
       () {
-        expect(a.wpmIn10min, 15);
-        expect(a.wpmIn1min, 15);
-        expect(a.wpmIn10s, 15);
-        expect(a.wpmOverall, 15);
+        expect(a.wpmIn10min, 12);
+        expect(a.wpmIn1min, 12);
+        expect(a.wpmIn10s, 12);
+        expect(a.wpmOverall, 12);
       }
       );
     withClock(
@@ -187,14 +189,5 @@ void main() {
         expect(a.wpmOverall, 3);
       }
       );
-  });
-
-  test('should not clear hits on reset', () {
-    var a = Analysis(layout);
-    a.hit("a", "a", t(0));
-    a.reset();
-    expect(a.hits.length, 1); 
-    a.hits.add(Hit(t(0), true, "a"));
-    expect(a.hits.length, 1);
   });
 }
