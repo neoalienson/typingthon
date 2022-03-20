@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey;
 import 'package:typingthon/app_menu.dart';
+import 'package:typingthon/history_page.dart';
+import 'package:typingthon/records.dart';
 import 'package:typingthon/statistic_card.dart';
 import 'package:typingthon/test_state.dart';
 import 'detailed_analysis_page.dart';
@@ -169,6 +171,8 @@ class _MainPageState extends State<MainPage> {
     final separator = Container(width: 0.5, color: Colors.black);
     const breakpoint1 = 800.0;
     const breakpoint2 = 1300.0;
+    const breakpoint3 = 2000.0;
+
     final appMenu = AppMenu(
       hambgerMenuMode: (screenWidth < breakpoint1),
       curreatLayout: layout, 
@@ -231,10 +235,15 @@ class _MainPageState extends State<MainPage> {
     );
 
     if (screenWidth >= breakpoint1) {
-      final rightPanel = (screenWidth >= breakpoint2) ? <Widget>[
-        separator,
-        Expanded(child: DetailedAnalysisPage(analysis: _analysis,)),
-      ] : <Widget>[];
+      final rightWidgets = <Widget>[];
+      if (screenWidth >= breakpoint2) { 
+        rightWidgets.add(separator);
+        rightWidgets.add(Expanded(child: DetailedAnalysisPage(analysis: _analysis,)));
+      }
+      if (screenWidth >= breakpoint3) { 
+        rightWidgets.add(separator);
+        rightWidgets.add(Expanded(child: HistoryPage(seriesList: records)));
+      }      
       w = Row(
         children: [
           SizedBox(
@@ -243,7 +252,7 @@ class _MainPageState extends State<MainPage> {
           ),
           separator,
           Expanded(child: w), 
-          ...rightPanel,
+          ...rightWidgets,
         ],
       );
     }
