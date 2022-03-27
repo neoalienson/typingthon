@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:math' show min;
 // ignore: unused_import
 import 'dart:developer' show log;
+// ignore: unused_import
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:firebase_auth/firebase_auth.dart' as fa_;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey;
@@ -14,6 +17,7 @@ import 'detailed_analysis_page.dart';
 import 'src/layout.dart';
 import 'src/practice.dart';
 import 'src/analysis.dart';
+import 'user.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key, required this.title}) : super(key: key);
@@ -38,6 +42,24 @@ class _MainPageState extends State<MainPage> {
   void _reset() {
     test.clearTyped();
     _textScrollController.jumpTo(0);
+  }
+  late final TextEditingController _username;
+  late final TextEditingController _password;
+
+  void _signin() async {
+    try {
+      await fa_.FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _username.text,
+        password: _password.text,
+      );
+    } on fa_.FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        log('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        log('Wrong password provided for that user.');
+      }
+    }
+
   }
 
   KeyEventResult _onBackspace() {
@@ -73,14 +95,38 @@ class _MainPageState extends State<MainPage> {
 
     return KeyEventResult.ignored;
   }
+  fa_.User? _user;
 
   @override
   void initState() {
     super.initState();
-
     _focusNode = FocusNode(
       onKeyEvent: _onKeyEvent
-    );
+    );        
+
+    fa_.FirebaseAuth.instance
+    .authStateChanges()
+    .listen((fa_.User? user) {
+      if (user == null) {
+        log('User is currently signed out!');
+      } else {
+        log('User is signed in!');
+      }
+      _user = user;
+      usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.get().then((value) {
+      List<HistoryRecord> h = [];
+        for (var r in value.docs) {
+          h.add(HistoryRecord(datetime: r.data.datetime, wpm: r.data.wpm));
+        }
+        h.sort(((a, b) => a.datetime.difference(b.datetime).inSeconds));
+        history.clear();
+        history.addAll(h);
+      });
+    });
+
+    _username = TextEditingController();
+    _password = TextEditingController();
+
     _loadData();
     _addTimer();
   }
@@ -146,12 +192,12 @@ class _MainPageState extends State<MainPage> {
   void _loadData() async {
     // await _practice.loadWords(rootBundle);
     // text = _practice.build(PracticeMode.random).join(" ")
-    var texts = await _practice.loadXmlFromUrl("https://www.technologyreview.com/feed/");
+    // var texts = await _practice.loadXmlFromUrl(");
     // var texts = await _practice.loadXmlFromFile(rootBundle, "assets/texts/1.txt"); 
-    texts.shuffle();
+    var text = await _practice.loadXmlFromFireStore(); 
 
     setState(() {
-      test.text = texts.first;
+      test.text = text;
     });
   }
 
@@ -162,6 +208,11 @@ class _MainPageState extends State<MainPage> {
     _analysis = Analysis(layout);
     _analysis.testLength = mode.duration;
     _practice.mode = mode;
+    _practice.onCompleted = () {
+      final h = HistoryRecord(datetime: DateTime.now(), wpm: _analysis.wpmOverall);
+      usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.add(h);
+      history.add(HistoryRecord(datetime: h.datetime, wpm: h.wpm));
+    };
     _practice.start();
   }
 
@@ -185,6 +236,32 @@ class _MainPageState extends State<MainPage> {
       fontSize: 12,
       fontStyle: FontStyle.italic,
     );
+
+    var login = (_user == null) ? <Widget>[
+      Card(child:Padding(
+        padding: const EdgeInsets.all(20), 
+        child: Column(children: [
+          TextField(
+            controller: _username,
+            decoration: const InputDecoration(
+              labelText: 'Email',
+            ),
+          ),   
+          TextField(
+            controller: _password,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Password',
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () { _signin(); }, 
+            child: const Text("Login")),
+          ]
+          )
+        )
+      )]
+      : <Widget>[];
     Widget w = Column(
       children: [
         StatisticCard(analysis: _analysis, practiceEngine: _practice,),
@@ -229,7 +306,8 @@ class _MainPageState extends State<MainPage> {
               ]
             ),
           )
-        ))
+        )),
+        ...login
         ,
       ],
     );
@@ -258,6 +336,7 @@ class _MainPageState extends State<MainPage> {
     }
 
     FocusScope.of(context).requestFocus(_focusNode);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),

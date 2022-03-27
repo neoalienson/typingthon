@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:typingthon/src/analysis.dart';
+import 'package:typingthon/src/extractor.dart';
 import 'package:typingthon/src/layout.dart';
 import 'package:typingthon/src/practice.dart';
 
@@ -94,11 +95,22 @@ class AppMenu extends StatelessWidget {
 
     items.add(_buildDrawerHeader("Settings"));
 
+    items.add(
+      ListTile(
+        title: const Text("Load from TechReview"),
+        onTap: () {
+          if (_hambgerMenuMode) {
+            Navigator.pop(context);
+          }
+          Extractor().loadXmlFromUrl("https://www.technologyreview.com/feed/");
+        },
+      )
+    );
+
     return ListView(
           padding: EdgeInsets.zero,
           children: 
             items,
     );
   }
-
 }
