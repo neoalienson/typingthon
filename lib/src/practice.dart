@@ -6,8 +6,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:localstorage/localstorage.dart';
 import 'layout.dart';
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:firebase_storage/firebase_storage.dart' show FirebaseStorage, ListResult;
 import 'dart:convert';
+import 'package:clock/clock.dart';
 
 enum PracticeModes {
   random,
@@ -80,20 +81,22 @@ class PracticeEngine {
     _words = _data.replaceAll("\r", "").split("\n");
   }
 
-  Future<String> loadXmlFromFireStore() async {
-    final storage = LocalStorage('text_library.json');
+  Future<String> loadXmlFromFireStore(
+    LocalStorage storage,
+    FirebaseStorage firebaseStorage
+  ) async {
     await storage.ready;
     Map<String, dynamic>? storedList = storage.getItem('list');
     final needsUpdate = (storedList == null) ? true : 
-      (DateTime.parse(storedList['last_update']).difference(DateTime.now()).inDays > 1);
+      (DateTime.parse(storedList['last_update']).difference(clock.now()).inDays > 1);
 
     var paths = [];
     if (needsUpdate) {
-      firebase_storage.ListResult result =
-        await firebase_storage.FirebaseStorage.instance.ref('texts').listAll();
+      ListResult result =
+        await firebaseStorage.ref('texts').listAll();
       paths = result.items.map((e) => e.fullPath).toList();
       storage.setItem('list', {
-        'last_update': DateTime.now().toString(),
+        'last_update': clock.now().toString(),
         'list' : paths,
       });
     } else {
@@ -105,9 +108,9 @@ class PracticeEngine {
     if (storedList != null && storedList.containsKey(path)) {
       return storedList[path];
     } else {
-      Uint8List bytes = (await firebase_storage.FirebaseStorage.instance.ref(path).getData())!;
+      Uint8List bytes = (await firebaseStorage.ref(path).getData())!;
       final content = utf8.decode(bytes);
-      storage.setItem(path, content);
+      await storage.setItem(path, content);
       return content;
     }
   }

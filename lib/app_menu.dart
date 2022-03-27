@@ -1,3 +1,4 @@
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:typingthon/src/analysis.dart';
 import 'package:typingthon/src/extractor.dart';
@@ -102,7 +103,7 @@ class AppMenu extends StatelessWidget {
           if (_hambgerMenuMode) {
             Navigator.pop(context);
           }
-          Extractor().loadXmlFromUrl("https://www.technologyreview.com/feed/");
+          Extractor(FirebaseStorage.instance).loadXmlFromUrl("https://www.technologyreview.com/feed/");
         },
       )
     );

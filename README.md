@@ -7,3 +7,7 @@ A simple typing practise app with differet layout support.
 https://pub.dev/packages/flutter_cors
 
 `fluttercors --disable`
+
+## Generate mock
+
+`dart run build_runner build`

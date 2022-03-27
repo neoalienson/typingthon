@@ -7,19 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:xml/xml.dart' as xml;
 import 'package:html/parser.dart' show parse;
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:firebase_storage/firebase_storage.dart' show FirebaseStorage, ListResult;
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 class Extractor {
+  final FirebaseStorage firebaseStorage;
+
+  Extractor(this.firebaseStorage);
+
   Future<String> loadXmlFromFireStore() async {
-    firebase_storage.ListResult result =
-      await firebase_storage.FirebaseStorage.instance.ref('texts').listAll();
+    ListResult result =
+      await firebaseStorage.ref('texts').listAll();
 
     final list = result.items.toList(growable: false);
     list.shuffle();
     final path = list.first.fullPath;
-    Uint8List bytes = (await firebase_storage.FirebaseStorage.instance.ref(path).getData())!;
+    Uint8List bytes = (await firebaseStorage.ref(path).getData())!;
 
     return utf8.decode(bytes);
   }
@@ -34,7 +38,7 @@ class Extractor {
     final response = await c.get(Uri.parse(uRL));
     if (response.statusCode == 200) {
       return _processXml(response.body);
-      } else {
+    } else {
     }
 
     return [];
@@ -68,7 +72,7 @@ class Extractor {
 
   void _uploadToFireStore(String text) {
     final filename = md5.convert(utf8.encode(text)).toString();
-    firebase_storage.FirebaseStorage.instance
+    firebaseStorage
       .ref('texts/$filename.txt')
       .putString(text);
   }

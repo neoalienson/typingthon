@@ -3,11 +3,14 @@ import 'dart:math' show min;
 // ignore: unused_import
 import 'dart:developer' show log;
 // ignore: unused_import
+import 'package:firebase_storage/firebase_storage.dart';
+// ignore: unused_import
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:firebase_auth/firebase_auth.dart' as fa_;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, LogicalKeyboardKey;
+import 'package:localstorage/localstorage.dart';
 import 'package:typingthon/app_menu.dart';
 import 'package:typingthon/history_page.dart';
 import 'package:typingthon/records.dart';
@@ -194,7 +197,9 @@ class _MainPageState extends State<MainPage> {
     // text = _practice.build(PracticeMode.random).join(" ")
     // var texts = await _practice.loadXmlFromUrl(");
     // var texts = await _practice.loadXmlFromFile(rootBundle, "assets/texts/1.txt"); 
-    var text = await _practice.loadXmlFromFireStore(); 
+    var text = await _practice.loadXmlFromFireStore(
+      LocalStorage('text_library.json' ),
+      FirebaseStorage.instance); 
 
     setState(() {
       test.text = text;
