@@ -1,13 +1,19 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:typingthon/src/practice.dart';
-import 'package:http/http.dart' as http;
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:typingthon/src/practice.dart';
+import 'package:mockito/annotations.dart';
+import 'package:clock/clock.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 import 'practice_test.mocks.dart';
 
-@GenerateMocks([http.Client]) 
+@GenerateMocks([LocalStorage])
+@GenerateMocks([FirebaseStorage])
+@GenerateMocks([ListResult])
+@GenerateMocks([Reference])
 void main() {
   test('Safety', () {
     var practise = PracticeEngine();
@@ -15,22 +21,27 @@ void main() {
     expect(practise.build(PracticeModes.singleLeftHome), []);
   });
 
-  test("Load content", () async {
-    var practise = PracticeEngine();
-    final client = MockClient();
+  test("Load while local storage is empty", () {
+    final practice = PracticeEngine();
+    final localStorage = MockLocalStorage();
+    final firebaseStorage = MockFirebaseStorage();
+    final listResult = MockListResult();
+    final reference = MockReference();
 
-    final content = await File('test_resources/technologyreview.txt').readAsString();
-    final expected = await File('test_resources/technologyreview_output.txt').readAsString();
-    when(
-      client.get(Uri.parse('https://www.technologyreview.com/feed/')))
-      .thenAnswer((_) async =>
-        http.Response(content, 200, headers: {
-          "content-type": "application/json; charset=utf-8",
-        })
+    when(localStorage.ready).thenAnswer((_) async => true);
+    when(localStorage.getItem("list")).thenReturn(null);
+    when(firebaseStorage.ref('texts')).thenReturn(reference);
+    when(reference.listAll()).thenAnswer((_) async => listResult);
+    when(reference.fullPath).thenReturn("a");
+    when(firebaseStorage.ref("a")).thenReturn(reference);
+    when(reference.getData(10485760)).thenAnswer((_) async => Uint8List.fromList("b".codeUnits));
+    when(listResult.items).thenReturn([reference]);
+
+    withClock(
+      Clock.fixed(DateTime(0)), () async {
+        practice.loadXmlFromFireStore(localStorage, firebaseStorage);
+        await untilCalled(localStorage.setItem("list", ""));
+      }
     );
-    var respond = await practise.loadXmlFromUrl('https://www.technologyreview.com/feed/', client);  
-    // File("output.txt").writeAsStringSync(respond.join("\n"));
-      
-    expect(respond.join("\n"), expected);
   });
 }

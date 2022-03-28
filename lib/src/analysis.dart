@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:math' show max;
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:clock/clock.dart';
 import 'package:typingthon/src/layout.dart';
@@ -53,7 +54,8 @@ class Analysis {
   static const slowKeyDisplay = 30;
   static const wrongKeyDisplay = 26;
 
-  void start([DateTime? on]) {
+  void start(
+    [@visibleForTesting DateTime? on]) {
     var now = (on == null) ? clock.now() : on;
 
     if (!_started) {
@@ -159,7 +161,7 @@ class Analysis {
     _slowKeys.sort();
   }
 
-  void hit(String typedRaw, String expectedRaw, [DateTime? on]) {
+  void hit(String typedRaw, String expectedRaw, [@visibleForTesting DateTime? on]) {
     var now = (on == null) ? clock.now() : on;
     var correct = typedRaw == expectedRaw;
     final expected = expectedRaw.toLowerCase();

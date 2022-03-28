@@ -2,12 +2,13 @@ import 'dart:async';
 // ignore: unused_import
 import 'dart:developer';
 import 'dart:math' show min;
-
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:xml/xml.dart' as xml;
-import 'package:html/parser.dart' show parse;
+import 'package:localstorage/localstorage.dart';
 import 'layout.dart';
+import 'package:firebase_storage/firebase_storage.dart' show FirebaseStorage, ListResult;
+import 'dart:convert';
+import 'package:clock/clock.dart';
 
 enum PracticeModes {
   random,
@@ -42,21 +43,21 @@ class PracticeEngine {
   bool get isRunning => _isRunning;
   bool _hasKeyTyped = false;
   bool get hasKeyTyped => _hasKeyTyped;
+  Function? onCompleted;
 
   set hasKeyTyped(bool typed) {
     if (mode.isTimed && !hasKeyTyped) {
       _testTimer = Timer(mode.duration, () {
          _isRunning = false;
+        if (onCompleted != null) {
+          onCompleted!();
+        }
       });
     }
     _hasKeyTyped = typed;
   }
 
   Timer? _testTimer;
-  var _text = "";
-  String get text {
-    return _text;
-  }
   PracticeMode mode = practiceModes[PracticeModes.slowKeys]!;
 
   void start() {
@@ -80,43 +81,38 @@ class PracticeEngine {
     _words = _data.replaceAll("\r", "").split("\n");
   }
 
-  Future<List<String>> loadXmlFromFile(AssetBundle rootBundle, String path) async {
-    return _processXml(await rootBundle.loadString(path));
-  }
+  Future<String> loadXmlFromFireStore(
+    LocalStorage storage,
+    FirebaseStorage firebaseStorage
+  ) async {
+    await storage.ready;
+    Map<String, dynamic>? storedList = storage.getItem('list');
+    final needsUpdate = (storedList == null) ? true : 
+      (DateTime.parse(storedList['last_update']).difference(clock.now()).inDays > 1);
 
-  Future<List<String>> loadXmlFromUrl(String uRL, [http.Client? client]) async {
-    var c = (client == null) ? http.Client() : client;
-
-    final response = await c.get(Uri.parse(uRL));
-    if (response.statusCode == 200) {
-      return _processXml(response.body);
-      } else {
-      _text = "Error loading...";
+    var paths = [];
+    if (needsUpdate) {
+      ListResult result =
+        await firebaseStorage.ref('texts').listAll();
+      paths = result.items.map((e) => e.fullPath).toList();
+      storage.setItem('list', {
+        'last_update': clock.now().toString(),
+        'list' : paths,
+      });
+    } else {
+      paths = storedList['list'];
     }
 
-    return [];
-  }
-
-  List<String> _processXml(String text) {
-    final textXml = xml.XmlDocument.parse(text);
-    final elements = textXml.findAllElements("content:encoded");
-    var texts = <String>[];
-    for (var element in elements) {
-      final html = parse(element.text);
-      // change non-breaking space ASCII 160 to space
-      var text = html.documentElement!.text.replaceAll(RegExp(r'(\n){2,}'), "\n").trim()
-        .replaceAll('“', '"').replaceAll('”', '"').replaceAll("’", "'").replaceAll("—", " - ")
-        .replaceAll("‘", "'")
-        .replaceAll("\r", "\n").replaceAll(String.fromCharCode(160), " ").replaceAll("…", "...");
-      final lines = text.split("\n");
-      text = "";
-      for (var line in lines) {
-        text += line.trim();
-        text += "\n";
-      } 
-      texts.add(text);
+    paths.shuffle();
+    final path = paths.first;
+    if (storedList != null && storedList.containsKey(path)) {
+      return storedList[path];
+    } else {
+      Uint8List bytes = (await firebaseStorage.ref(path).getData())!;
+      final content = utf8.decode(bytes);
+      await storage.setItem(path, content);
+      return content;
     }
-     return texts;
   }
 
   List<String> _buildHomeRow(PracticeModes strategy) {

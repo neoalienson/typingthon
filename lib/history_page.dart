@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:typingthon/records.dart';
 import 'dart:math' as math;
 
+import 'package:typingthon/user.dart';
+
 class HistoryPage extends StatelessWidget {
-  final List<charts.Series<TimeSeriesWpm, DateTime>> seriesList;
+  final List<charts.Series<HistoryRecord, DateTime>> seriesList;
   const HistoryPage({
     Key? key,
     required this.seriesList,
