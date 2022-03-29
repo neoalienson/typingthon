@@ -32,7 +32,7 @@ class HistoryPage extends StatelessWidget {
             behaviors: [
               charts.SelectNearest(),
               charts.DomainHighlighter(),
-              charts.ChartTitle('Word per limit',
+              charts.ChartTitle('Word per minute',
                 behaviorPosition: charts.BehaviorPosition.bottom,
                 titleOutsideJustification:
                     charts.OutsideJustification.middleDrawArea),

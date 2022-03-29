@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:typingthon/test_state.dart';
+import 'package:typingthon/src/test_state.dart';
 
 void main() {
   test('Exceptional cases', () {

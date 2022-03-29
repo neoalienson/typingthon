@@ -92,13 +92,18 @@ class PracticeEngine {
 
     var paths = [];
     if (needsUpdate) {
-      ListResult result =
-        await firebaseStorage.ref('texts').listAll();
-      paths = result.items.map((e) => e.fullPath).toList();
-      storage.setItem('list', {
-        'last_update': clock.now().toString(),
-        'list' : paths,
-      });
+      try {
+        ListResult result =
+          await firebaseStorage.ref('texts').listAll();
+        paths = result.items.map((e) => e.fullPath).toList();
+        storage.setItem('list', {
+          'last_update': clock.now().toString(),
+          'list' : paths,
+        });
+      } catch (ex) {
+        log(ex.toString());
+        return ex.toString();
+      }
     } else {
       paths = storedList['list'];
     }

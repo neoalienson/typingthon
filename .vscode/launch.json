@@ -8,7 +8,6 @@
             "name": "Chrome (requires https://pub.dev/packages/flutter_cors)",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main_app.dart",
             "args": [
                 "-d",
                 "chrome",
@@ -18,7 +17,6 @@
             "name": "Windows",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main_app.dart",
             "args": [
                 "-d",
                 "windows",

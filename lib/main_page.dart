@@ -13,9 +13,9 @@ import 'package:flutter/services.dart' show KeyDownEvent, KeyRepeatEvent, Logica
 import 'package:localstorage/localstorage.dart';
 import 'package:typingthon/app_menu.dart';
 import 'package:typingthon/history_page.dart';
-import 'package:typingthon/records.dart';
+import 'package:typingthon/src/records.dart';
 import 'package:typingthon/statistic_card.dart';
-import 'package:typingthon/test_state.dart';
+import 'package:typingthon/src/test_state.dart';
 import 'detailed_analysis_page.dart';
 import 'src/layout.dart';
 import 'src/practice.dart';
@@ -114,17 +114,19 @@ class _MainPageState extends State<MainPage> {
         log('User is currently signed out!');
       } else {
         log('User is signed in!');
+
+        usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.get().then((value) {
+        List<HistoryRecord> h = [];
+          for (var r in value.docs) {
+            h.add(HistoryRecord(datetime: r.data.datetime, wpm: r.data.wpm));
+          }
+          h.sort(((a, b) => a.datetime.difference(b.datetime).inSeconds));
+          history.clear();
+          history.addAll(h);
+        });
       }
       _user = user;
-      usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.get().then((value) {
-      List<HistoryRecord> h = [];
-        for (var r in value.docs) {
-          h.add(HistoryRecord(datetime: r.data.datetime, wpm: r.data.wpm));
-        }
-        h.sort(((a, b) => a.datetime.difference(b.datetime).inSeconds));
-        history.clear();
-        history.addAll(h);
-      });
+
     });
 
     _username = TextEditingController();

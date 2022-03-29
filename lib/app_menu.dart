@@ -37,7 +37,7 @@ class AppMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var items = <Widget>[];
-
+    /*
     items.add(_buildDrawerHeader("Layout"));
 
     for (var k in layouts.keys) {
@@ -73,6 +73,7 @@ class AppMenu extends StatelessWidget {
         )
       );
     }
+    */
 
     items.add(_buildDrawerHeader("Benchmark"));
 
