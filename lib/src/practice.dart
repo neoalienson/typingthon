@@ -87,12 +87,13 @@ class PracticeEngine {
   ) async {
     await storage.ready;
     Map<String, dynamic>? storedList = storage.getItem('list');
-    final needsUpdate = (storedList == null) ? true : 
-      (DateTime.parse(storedList['last_update']).difference(clock.now()).inDays > 1);
+    final needsUpdate = (storedList == null) ? true :  
+      clock.now().difference(DateTime.parse(storedList['last_update'])).inDays > 1;
 
     var paths = [];
     if (needsUpdate) {
       try {
+        log("loading from firebase storage");
         ListResult result =
           await firebaseStorage.ref('texts').listAll();
         paths = result.items.map((e) => e.fullPath).toList();
@@ -105,19 +106,20 @@ class PracticeEngine {
         return ex.toString();
       }
     } else {
+      log("loading from local storage");
       paths = storedList['list'];
     }
 
     paths.shuffle();
     final path = paths.first;
-    if (storedList != null && storedList.containsKey(path)) {
-      return storedList[path];
-    } else {
-      Uint8List bytes = (await firebaseStorage.ref(path).getData())!;
-      final content = utf8.decode(bytes);
-      await storage.setItem(path, content);
-      return content;
+    var item = storage.getItem(path);
+    if (item != null) {
+      return item;
     }
+    Uint8List bytes = (await firebaseStorage.ref(path).getData())!;
+    final content = utf8.decode(bytes);
+    await storage.setItem(path, content);
+    return content;
   }
 
   List<String> _buildHomeRow(PracticeModes strategy) {

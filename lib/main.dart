@@ -24,7 +24,7 @@ class MainApp extends StatelessWidget {
         textTheme: const TextTheme(
         ),
       ),
-      home: const MainPage(title: 'Typingthon'),
+      home: const MainPage(title: 'Typingthon v0.1'),
     );
   }
 }
