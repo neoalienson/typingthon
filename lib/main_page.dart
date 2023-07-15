@@ -20,7 +20,6 @@ import 'detailed_analysis_page.dart';
 import 'src/layout.dart';
 import 'src/practice.dart';
 import 'src/analysis.dart';
-import 'user.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({Key? key, required this.title}) : super(key: key);
@@ -115,15 +114,15 @@ class _MainPageState extends State<MainPage> {
       } else {
         log('User is signed in!');
 
-        usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.get().then((value) {
-        List<HistoryRecord> h = [];
-          for (var r in value.docs) {
-            h.add(HistoryRecord(datetime: r.data.datetime, wpm: r.data.wpm));
-          }
-          h.sort(((a, b) => a.datetime.difference(b.datetime).inSeconds));
-          history.clear();
-          history.addAll(h);
-        });
+        // usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.get().then((value) {
+        // List<HistoryRecord> h = [];
+        //   for (var r in value.docs) {
+        //     h.add(HistoryRecord(datetime: r.data.datetime, wpm: r.data.wpm));
+        //   }
+        //   h.sort(((a, b) => a.datetime.difference(b.datetime).inSeconds));
+        //   history.clear();
+        //   history.addAll(h);
+        // });
       }
       _user = user;
 
@@ -216,9 +215,9 @@ class _MainPageState extends State<MainPage> {
     _analysis.testLength = mode.duration;
     _practice.mode = mode;
     _practice.onCompleted = () {
-      final h = HistoryRecord(datetime: DateTime.now(), wpm: _analysis.wpmOverall);
-      usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.add(h);
-      history.add(HistoryRecord(datetime: h.datetime, wpm: h.wpm));
+      // final h = HistoryRecord(datetime: DateTime.now(), wpm: _analysis.wpmOverall);
+      // usersRef.doc("wH3hmn9Z5tMaUHu3tfBB").history.add(h);
+      // history.add(HistoryRecord(datetime: h.datetime, wpm: h.wpm));
     };
     _practice.start();
   }
@@ -327,7 +326,7 @@ class _MainPageState extends State<MainPage> {
       }
       if (screenWidth >= breakpoint3) { 
         rightWidgets.add(separator);
-        rightWidgets.add(Expanded(child: HistoryPage(seriesList: records)));
+        // rightWidgets.add(Expanded(child: HistoryPage(seriesList: records)));
       }      
       w = Row(
         children: [
