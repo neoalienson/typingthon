@@ -2,6 +2,13 @@
 
 A simple typing practise app with differet layout support.
 
+## Setup
+
+### config with flutterfire
+```
+flutterfire
+```
+
 ## Disable Chrome CORS check
 
 https://pub.dev/packages/flutter_cors
