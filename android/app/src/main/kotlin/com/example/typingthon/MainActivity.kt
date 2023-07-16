@@ -1,4 +1,4 @@
-package com.01man.typingthon
+package com.neoalienson.typingthon
 
 import io.flutter.embedding.android.FlutterActivity
 

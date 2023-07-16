@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.01man.typingthon">
+    package="com.neoalienson.typingthon">
    <application
         android:label="typingthon"
         android:name="${applicationName}"
