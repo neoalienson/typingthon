@@ -8,6 +8,26 @@
             "type": "shell",
             "command": "flutter",
             "args": [ "run", "-d", "chrome"]
+        },
+        {
+            "label": "Install Firebase Tools",
+            "type": "shell",
+            "command": "npm install -g firebase-tools"
+        },
+        {
+            "label": "Firebase login",
+            "type": "shell",
+            "command": "firebase login"
+        },
+        {
+            "label": "Install FlutterFire CLI",
+            "type": "shell",
+            "command": "dart pub global activate flutterfire_cli"
+        },
+        {
+            "label": "FlutterFire config",
+            "type": "shell",
+            "command": "flutterfire config"
         }
     ]
 }
